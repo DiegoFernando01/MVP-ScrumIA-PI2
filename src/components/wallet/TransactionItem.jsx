@@ -1,9 +1,10 @@
 import React from "react";
+import BudgetIndicator from "./BudgetIndicator";
 
 /**
  * Componente para mostrar una transacción individual
  */
-const TransactionItem = ({ transaction }) => {
+const TransactionItem = ({ transaction, budgetUsage }) => {
   const { type, description, amount, date, category } = transaction;
 
   return (
@@ -21,6 +22,11 @@ const TransactionItem = ({ transaction }) => {
       <div className="text-xs text-gray-600">
         {date} • {category || "Sin categoría"}
       </div>
+
+      {/* Mostrar indicador de presupuesto solo para gastos con categoría y presupuesto configurado */}
+      {type === "expense" && category && budgetUsage && (
+        <BudgetIndicator budgetUsage={budgetUsage} />
+      )}
     </li>
   );
 };

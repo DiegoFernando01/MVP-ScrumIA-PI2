@@ -1,6 +1,7 @@
 import React from "react";
 import FilterPanel from "./FilterPanel";
 import TransactionItem from "./TransactionItem";
+import AlertDisplay from "./AlertDisplay";
 
 /**
  * Lista de transacciones con filtros
@@ -10,11 +11,22 @@ const TransactionList = ({
   filterProps,
   uniqueCategories,
   regenerateTestData,
+  calculateBudgetUsage,
+  alertProps,
 }) => {
   const { filteredTransactions, hasActiveFilters, ...filters } = filterProps;
 
   return (
     <div>
+      {/* Mostrar alertas si hay */}
+      {alertProps && alertProps.activeAlerts.length > 0 && (
+        <AlertDisplay
+          activeAlerts={alertProps.activeAlerts}
+          markAlertAsRead={alertProps.markAlertAsRead}
+          dismissAlert={alertProps.dismissAlert}
+        />
+      )}
+
       <div className="mb-4">
         {/* Encabezado y botón de prueba */}
         <div className="flex justify-between items-center">
@@ -45,7 +57,15 @@ const TransactionList = ({
       ) : (
         <ul className="space-y-2">
           {filteredTransactions.map((transaction) => (
-            <TransactionItem key={transaction.id} transaction={transaction} />
+            <TransactionItem
+              key={transaction.id}
+              transaction={transaction}
+              budgetUsage={
+                transaction.type === "expense" && transaction.category
+                  ? calculateBudgetUsage(transaction.category, transactions)
+                  : null
+              }
+            />
           ))}
         </ul>
       )}
