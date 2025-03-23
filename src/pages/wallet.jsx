@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import TransactionForm from "../components/wallet/TransactionForm";
+import EditTransactionModal from "../components/wallet/EditTransactionModal";
 import CategoryManager from "../components/wallet/CategoryManager";
 import TransactionList from "../components/wallet/TransactionList";
 import BudgetManager from "../components/wallet/BudgetManager";
@@ -15,7 +16,8 @@ import { validateTransaction } from "../utils/validationUtils";
 
 /**
  * Página principal de billetera
- * Ahora con funcionalidad de presupuestos, alertas y recordatorios
+ * Ahora con funcionalidad de presupuestos, alertas, recordatorios
+ * y edición/eliminación de transacciones
  */
 function Wallet() {
   // Usar hooks personalizados
@@ -36,6 +38,9 @@ function Wallet() {
   });
   const [errors, setErrors] = useState({});
   const [activeTab, setActiveTab] = useState("transactions"); // Para navegar entre secciones
+
+  // Estado para manejar la edición de transacciones
+  const [editingTransaction, setEditingTransaction] = useState(null);
 
   // Cargar datos de prueba al inicio
   useEffect(() => {
@@ -135,6 +140,39 @@ function Wallet() {
       });
     }
     return success;
+  };
+
+  /**
+   * Maneja la edición de una transacción
+   */
+  const handleEditTransaction = (transaction) => {
+    setEditingTransaction(transaction);
+  };
+
+  /**
+   * Guarda los cambios realizados a una transacción
+   */
+  const handleSaveEditedTransaction = (editedTransaction) => {
+    setTransactions(
+      transactions.map((t) =>
+        t.id === editedTransaction.id ? editedTransaction : t
+      )
+    );
+    setEditingTransaction(null);
+  };
+
+  /**
+   * Cancela la edición de una transacción
+   */
+  const handleCancelEdit = () => {
+    setEditingTransaction(null);
+  };
+
+  /**
+   * Elimina una transacción
+   */
+  const handleDeleteTransaction = (transactionId) => {
+    setTransactions(transactions.filter((t) => t.id !== transactionId));
   };
 
   // Filtrar transacciones según criterios seleccionados
@@ -261,6 +299,8 @@ function Wallet() {
                 budgetManager.calculateBudgetUsage(category, transactions)
               }
               alertProps={alertProps}
+              onEditTransaction={handleEditTransaction}
+              onDeleteTransaction={handleDeleteTransaction}
             />
           </div>
         </>
@@ -295,6 +335,21 @@ function Wallet() {
 
       {activeTab === "reminders" && (
         <ReminderManager reminderHook={reminderManager} />
+      )}
+
+      {/* Modal de edición de transacción */}
+      {editingTransaction && (
+        <EditTransactionModal
+          transaction={editingTransaction}
+          onSave={handleSaveEditedTransaction}
+          onCancel={handleCancelEdit}
+          categories={categoryManager.predefinedCategories}
+          newCategoryInput={categoryManager.newCategoryInput}
+          setNewCategoryInput={categoryManager.setNewCategoryInput}
+          showNewCategoryInput={categoryManager.showNewCategoryInput}
+          setShowNewCategoryInput={categoryManager.setShowNewCategoryInput}
+          addNewCategory={addNewCategory}
+        />
       )}
     </div>
   );

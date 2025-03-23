@@ -13,6 +13,8 @@ const TransactionList = ({
   regenerateTestData,
   calculateBudgetUsage,
   alertProps,
+  onEditTransaction,
+  onDeleteTransaction,
 }) => {
   const { filteredTransactions, hasActiveFilters, ...filters } = filterProps;
 
@@ -65,6 +67,8 @@ const TransactionList = ({
                   ? calculateBudgetUsage(transaction.category, transactions)
                   : null
               }
+              onEdit={onEditTransaction}
+              onDelete={onDeleteTransaction}
             />
           ))}
         </ul>
