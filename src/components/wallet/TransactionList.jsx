@@ -47,6 +47,13 @@ const TransactionList = ({
           uniqueCategories={uniqueCategories}
           hasActiveFilters={hasActiveFilters}
         />
+
+        {/* Contador de transacciones */}
+        <div className="mt-3 text-sm text-gray-600">
+          Mostrando {filteredTransactions.length} de {transactions.length}{" "}
+          transacciones
+          {hasActiveFilters && " (con filtros aplicados)"}
+        </div>
       </div>
 
       {/* Lista de transacciones */}

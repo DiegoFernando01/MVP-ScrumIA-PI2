@@ -12,14 +12,18 @@ const useTransactionFilters = () => {
     startDate: "",
     endDate: "",
   });
+  // Nuevo: búsqueda por texto y ordenamiento
+  const [searchText, setSearchText] = useState("");
+  const [sortBy, setSortBy] = useState("date-desc"); // Ordenar por fecha descendente por defecto
 
   /**
-   * Filtra transacciones según los criterios seleccionados
+   * Filtra y ordena transacciones según los criterios seleccionados
    * @param {Array} transactions - Lista de transacciones a filtrar
-   * @returns {Array} - Transacciones filtradas
+   * @returns {Array} - Transacciones filtradas y ordenadas
    */
   const filterTransactions = (transactions) => {
-    return transactions.filter((t) => {
+    // Paso 1: Filtrar transacciones
+    let filtered = transactions.filter((t) => {
       // Filtro por categoría
       if (categoryFilter !== "all" && t.category !== categoryFilter) {
         return false;
@@ -30,11 +34,10 @@ const useTransactionFilters = () => {
         return false;
       }
 
-      // Filtro por fecha si se ha establecido alguna
+      // Filtro por fecha
       if (dateFilter.startDate || dateFilter.endDate) {
         const transactionDate = new Date(t.date);
 
-        // Comprobar fecha de inicio
         if (
           dateFilter.startDate &&
           new Date(dateFilter.startDate) > transactionDate
@@ -42,7 +45,6 @@ const useTransactionFilters = () => {
           return false;
         }
 
-        // Comprobar fecha de fin
         if (
           dateFilter.endDate &&
           new Date(dateFilter.endDate) < transactionDate
@@ -51,8 +53,58 @@ const useTransactionFilters = () => {
         }
       }
 
+      // Filtro por texto
+      if (searchText.trim()) {
+        const searchLower = searchText.trim().toLowerCase();
+        const matchesDescription = t.description
+          ?.toLowerCase()
+          .includes(searchLower);
+        const matchesCategory = t.category?.toLowerCase().includes(searchLower);
+        const matchesAmount = t.amount?.toString().includes(searchLower);
+
+        if (!matchesDescription && !matchesCategory && !matchesAmount) {
+          return false;
+        }
+      }
+
       return true;
     });
+
+    // Paso 2: Ordenar transacciones según el criterio seleccionado
+    return sortTransactions(filtered, sortBy);
+  };
+
+  /**
+   * Ordena un array de transacciones según un criterio
+   * @param {Array} transactions - Transacciones a ordenar
+   * @param {string} sortByOption - Criterio de ordenamiento
+   * @returns {Array} - Transacciones ordenadas
+   */
+  const sortTransactions = (transactions, sortByOption) => {
+    const sorted = [...transactions];
+
+    switch (sortByOption) {
+      case "date-asc":
+        return sorted.sort((a, b) => new Date(a.date) - new Date(b.date));
+      case "date-desc":
+        return sorted.sort((a, b) => new Date(b.date) - new Date(a.date));
+      case "amount-asc":
+        return sorted.sort(
+          (a, b) => parseFloat(a.amount) - parseFloat(b.amount)
+        );
+      case "amount-desc":
+        return sorted.sort(
+          (a, b) => parseFloat(b.amount) - parseFloat(a.amount)
+        );
+      case "category":
+        return sorted.sort((a, b) => {
+          const catA = (a.category || "").toLowerCase();
+          const catB = (b.category || "").toLowerCase();
+          return catA.localeCompare(catB);
+        });
+      default:
+        return sorted;
+    }
   };
 
   /**
@@ -82,6 +134,8 @@ const useTransactionFilters = () => {
     setCategoryFilter("all");
     setTypeFilter("all");
     clearDateFilter();
+    setSearchText("");
+    setSortBy("date-desc");
   };
 
   /**
@@ -92,7 +146,8 @@ const useTransactionFilters = () => {
       categoryFilter !== "all" ||
       typeFilter !== "all" ||
       dateFilter.startDate !== "" ||
-      dateFilter.endDate !== ""
+      dateFilter.endDate !== "" ||
+      searchText.trim() !== ""
     );
   };
 
@@ -104,6 +159,12 @@ const useTransactionFilters = () => {
     dateFilter,
     handleDateFilterChange,
     clearDateFilter,
+    // Nuevos métodos y propiedades
+    searchText,
+    setSearchText,
+    sortBy,
+    setSortBy,
+    // Métodos existentes
     resetAllFilters,
     filterTransactions,
     hasActiveFilters,
