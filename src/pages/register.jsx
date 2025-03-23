@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { signUp } from '../services/auth';  // Importa signUp desde auth.js
 import { saveUserData } from '../services/userService';  // Importa la función para guardar datos en Firestore
 import { auth } from '../services/firebaseConfig';  // Asegúrate de importar auth
+import '../styles/Register.css';
 
 function Register() {
   const [firstName, setFirstName] = useState('');  // Estado para nombre
@@ -11,6 +12,7 @@ function Register() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState(null);
   const [successMessage, setSuccessMessage] = useState('');
+  const [isRegistered, setIsRegistered] = useState(false); // Estado para saber si el registro fue exitoso
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -33,58 +35,74 @@ function Register() {
       await saveUserData(firstName, lastName, email); // Guarda los datos en Firestore
 
       setSuccessMessage('Te has registrado correctamente!'); // Muestra el mensaje de éxito
-      setTimeout(() => {
-        navigate('/');  // Redirige a la página de Login después de 2 segundos
-      }, 2000);
+      setIsRegistered(true); // Cambia el estado a "registrado"
     } catch (error) {
-      setError(error.message);  // Si hay un error, lo mostramos
+      setError(error.message);  // Si ocurre un error, lo mostramos
     }
   };
 
+  const handleLoginRedirect = () => {
+    navigate('/');  
+  };
   return (
     <div className="register-container">
-      <h2>Register</h2>
-      <form onSubmit={handleSubmit}>
+      <h2>Registro</h2>
+
+      {!isRegistered ? (
+        <form onSubmit={handleSubmit}>
+          <div>
+            <input
+              type="text"
+              value={firstName}
+              onChange={(e) => setFirstName(e.target.value)}
+              placeholder="Nombre"
+              required
+            />
+          </div>
+          <div>
+            <input
+              type="text"
+              value={lastName}
+              onChange={(e) => setLastName(e.target.value)}
+              placeholder="Apellido"
+              required
+            />
+          </div>
+          <div>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Correo electrónico"
+              required
+            />
+          </div>
+          <div>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Contraseña"
+              required
+            />
+          </div>
+
+          {error && <p className="error">{error}</p>}
+          {successMessage && <p className="success">{successMessage}</p>}
+
+          <div className="form-buttons">
+            <button type="submit">Registrar</button>
+            <button type="button" onClick={handleLoginRedirect}>
+              Ir a Login
+            </button>
+          </div>
+        </form>
+      ) : (
         <div>
-          <input
-            type="text"
-            value={firstName}
-            onChange={(e) => setFirstName(e.target.value)}
-            placeholder="First Name"
-            required
-          />
+          <p className="success">¡Te has registrado con éxito!</p>
+          <button onClick={handleLoginRedirect}>Ir a Login</button>
         </div>
-        <div>
-          <input
-            type="text"
-            value={lastName}
-            onChange={(e) => setLastName(e.target.value)}
-            placeholder="Last Name"
-            required
-          />
-        </div>
-        <div>
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="Email"
-            required
-          />
-        </div>
-        <div>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="Password"
-            required
-          />
-        </div>
-        {error && <p style={{ color: 'red' }}>{error}</p>}  {/* Mostrar error si lo hay */}
-        {successMessage && <p style={{ color: 'green' }}>{successMessage}</p>}  {/* Mostrar mensaje de éxito */}
-        <button type="submit">Register</button>
-      </form>
+      )}
     </div>
   );
 }
