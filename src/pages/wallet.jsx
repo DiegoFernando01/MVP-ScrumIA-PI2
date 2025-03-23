@@ -4,16 +4,18 @@ import CategoryManager from "../components/wallet/CategoryManager";
 import TransactionList from "../components/wallet/TransactionList";
 import BudgetManager from "../components/wallet/BudgetManager";
 import AlertManager from "../components/wallet/AlertManager";
+import ReminderManager from "../components/wallet/ReminderManager";
 import useCategories from "../hooks/useCategories";
 import useTransactionFilters from "../hooks/useTransactionFilters";
 import useBudgets from "../hooks/useBudgets";
 import useAlerts from "../hooks/useAlerts";
+import useReminders from "../hooks/useReminders";
 import generateTestData from "../utils/testDataGenerator";
 import { validateTransaction } from "../utils/validationUtils";
 
 /**
  * Página principal de billetera
- * Ahora con funcionalidad de presupuestos y alertas
+ * Ahora con funcionalidad de presupuestos, alertas y recordatorios
  */
 function Wallet() {
   // Usar hooks personalizados
@@ -21,6 +23,7 @@ function Wallet() {
   const filterManager = useTransactionFilters();
   const budgetManager = useBudgets();
   const alertManager = useAlerts();
+  const reminderManager = useReminders();
 
   // Estados locales para transacciones y formulario
   const [transactions, setTransactions] = useState([]);
@@ -151,13 +154,20 @@ function Wallet() {
     dismissAlert: alertManager.dismissAlert,
   };
 
+  // Obtener el conteo total de alertas no leídas (presupuestos + recordatorios)
+  const getTotalUnreadAlerts = () => {
+    return (
+      alertManager.getUnreadCount() + reminderManager.getUnreadReminderCount()
+    );
+  };
+
   return (
     <div className="p-4 max-w-md mx-auto">
       {/* Selector de pestañas */}
-      <div className="flex mb-6 border-b">
+      <div className="flex mb-6 border-b overflow-x-auto">
         <button
           onClick={() => setActiveTab("transactions")}
-          className={`py-2 px-4 font-medium ${
+          className={`py-2 px-4 font-medium whitespace-nowrap ${
             activeTab === "transactions"
               ? "text-blue-600 border-b-2 border-blue-600"
               : "text-gray-500 hover:text-gray-700"
@@ -167,7 +177,7 @@ function Wallet() {
         </button>
         <button
           onClick={() => setActiveTab("budgets")}
-          className={`py-2 px-4 font-medium ${
+          className={`py-2 px-4 font-medium whitespace-nowrap ${
             activeTab === "budgets"
               ? "text-blue-600 border-b-2 border-blue-600"
               : "text-gray-500 hover:text-gray-700"
@@ -181,8 +191,23 @@ function Wallet() {
           )}
         </button>
         <button
+          onClick={() => setActiveTab("reminders")}
+          className={`py-2 px-4 font-medium whitespace-nowrap ${
+            activeTab === "reminders"
+              ? "text-blue-600 border-b-2 border-blue-600"
+              : "text-gray-500 hover:text-gray-700"
+          }`}
+        >
+          Vencimientos
+          {reminderManager.getUnreadReminderCount() > 0 && (
+            <span className="ml-2 bg-red-500 text-white text-xs rounded-full px-2 py-0.5">
+              {reminderManager.getUnreadReminderCount()}
+            </span>
+          )}
+        </button>
+        <button
           onClick={() => setActiveTab("categories")}
-          className={`py-2 px-4 font-medium ${
+          className={`py-2 px-4 font-medium whitespace-nowrap ${
             activeTab === "categories"
               ? "text-blue-600 border-b-2 border-blue-600"
               : "text-gray-500 hover:text-gray-700"
@@ -192,13 +217,18 @@ function Wallet() {
         </button>
         <button
           onClick={() => setActiveTab("alerts")}
-          className={`py-2 px-4 font-medium ${
+          className={`py-2 px-4 font-medium whitespace-nowrap ${
             activeTab === "alerts"
               ? "text-blue-600 border-b-2 border-blue-600"
               : "text-gray-500 hover:text-gray-700"
           }`}
         >
           Alertas
+          {getTotalUnreadAlerts() > 0 && (
+            <span className="ml-2 bg-red-500 text-white text-xs rounded-full px-2 py-0.5">
+              {getTotalUnreadAlerts()}
+            </span>
+          )}
         </button>
       </div>
 
@@ -261,6 +291,10 @@ function Wallet() {
           toggleAlertConfig={alertManager.toggleAlertConfig}
           categories={categoryManager.predefinedCategories.expense}
         />
+      )}
+
+      {activeTab === "reminders" && (
+        <ReminderManager reminderHook={reminderManager} />
       )}
     </div>
   );
