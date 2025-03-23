@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 import TransactionForm from "../components/wallet/TransactionForm";
 import EditTransactionModal from "../components/wallet/EditTransactionModal";
 import CategoryManager from "../components/wallet/CategoryManager";
@@ -26,6 +28,10 @@ function Wallet() {
   const budgetManager = useBudgets();
   const alertManager = useAlerts();
   const reminderManager = useReminders();
+
+  // Hooks para autenticación y navegación
+  const { logout } = useAuth();
+  const navigate = useNavigate();
 
   // Estados locales para transacciones y formulario
   const [transactions, setTransactions] = useState([]);
@@ -175,6 +181,18 @@ function Wallet() {
     setTransactions(transactions.filter((t) => t.id !== transactionId));
   };
 
+  /**
+   * Maneja el cierre de sesión
+   */
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate("/"); // Redirigir al login
+    } catch (error) {
+      console.error("Error al cerrar sesión:", error);
+    }
+  };
+
   // Filtrar transacciones según criterios seleccionados
   const filteredTransactions = filterManager.filterTransactions(transactions);
 
@@ -267,6 +285,14 @@ function Wallet() {
               {getTotalUnreadAlerts()}
             </span>
           )}
+        </button>
+
+        {/* Botón de salir */}
+        <button
+          onClick={handleLogout}
+          className="py-2 px-4 font-medium whitespace-nowrap ml-auto text-red-500 hover:text-red-700 border-b-2 border-transparent"
+        >
+          Salir
         </button>
       </div>
 

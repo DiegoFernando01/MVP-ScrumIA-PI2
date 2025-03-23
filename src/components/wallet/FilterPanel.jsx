@@ -101,7 +101,7 @@ const FilterPanel = ({
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
-            className="flex-grow px-2 py-1 border rounded text-sm bg-white"
+            className="flex-grow px-2 py-1 border rounded text-sm bg-white text-gray-800"
           >
             <option value="date-desc">Fecha (más reciente primero)</option>
             <option value="date-asc">Fecha (más antiguo primero)</option>
