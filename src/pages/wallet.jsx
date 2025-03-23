@@ -1,7 +1,96 @@
 import React, { useState, useEffect } from "react";
 
+/**
+ * Componente Wallet - Gestiona transacciones financieras personales
+ *
+ * MEJORA POTENCIAL: Este componente podría dividirse en varios componentes más pequeños:
+ * - TransactionForm: Para el formulario de agregar transacciones
+ * - TransactionList: Para mostrar y filtrar transacciones
+ * - CategoryManager: Para administrar las categorías
+ * - FilterPanel: Para los controles de filtrado
+ */
 function Wallet() {
-  // Función para generar datos de prueba aleatorios
+  // =====================================================================
+  // SECCIÓN DE ESTADOS
+  // MEJORA POTENCIAL: Utilizar useReducer para manejar estados complejos
+  // =====================================================================
+
+  /**
+   * Catálogo de categorías predefinidas organizadas por tipo
+   * MEJORA POTENCIAL: Extraer a un archivo de configuración o servicio
+   */
+  const [predefinedCategories, setPredefinedCategories] = useState({
+    income: [
+      "Salario",
+      "Ventas",
+      "Inversiones",
+      "Préstamo",
+      "Regalo",
+      "Otros ingresos",
+    ],
+    expense: [
+      "Alimentación",
+      "Transporte",
+      "Vivienda",
+      "Entretenimiento",
+      "Salud",
+      "Educación",
+      "Ropa",
+      "Servicios",
+      "Otros gastos",
+    ],
+  });
+
+  /**
+   * Estados para gestión de nuevas categorías
+   * MEJORA POTENCIAL: Extraer a un hook personalizado como useCategoryManager
+   */
+  const [newCategoryInput, setNewCategoryInput] = useState("");
+  const [showNewCategoryInput, setShowNewCategoryInput] = useState(false);
+
+  /**
+   * Estado principal para almacenar todas las transacciones
+   * MEJORA POTENCIAL: Mover a context global o gestor de estado (Redux)
+   */
+  const [transactions, setTransactions] = useState([]);
+
+  /**
+   * Estado para datos del formulario de transacción
+   * MEJORA POTENCIAL: Extraer a un hook personalizado como useTransactionForm
+   */
+  const [formData, setFormData] = useState({
+    amount: "",
+    type: "income",
+    date: "",
+    description: "",
+    category: "",
+  });
+
+  /**
+   * Estado para errores de validación del formulario
+   */
+  const [errors, setErrors] = useState({});
+
+  /**
+   * Estados para filtros de transacciones
+   * MEJORA POTENCIAL: Extraer a un hook personalizado como useTransactionFilters
+   */
+  const [categoryFilter, setCategoryFilter] = useState("all");
+  const [typeFilter, setTypeFilter] = useState("all");
+  const [dateFilter, setDateFilter] = useState({
+    startDate: "",
+    endDate: "",
+  });
+
+  // =====================================================================
+  // SECCIÓN DE DATOS DE PRUEBA
+  // MEJORA POTENCIAL: Extraer a un módulo separado testDataGenerator.js
+  // =====================================================================
+
+  /**
+   * Genera datos de prueba para demostración de la funcionalidad
+   * @returns {Array} Transacciones aleatorias generadas
+   */
   const generateTestData = () => {
     const categories = {
       income: ["Salario", "Ventas", "Inversiones", "Préstamo", "Regalo"],
@@ -68,35 +157,29 @@ function Wallet() {
     return testData.sort((a, b) => new Date(b.date) - new Date(a.date));
   };
 
-  // Usar datos de prueba como estado inicial
-  const [transactions, setTransactions] = useState([]);
-  const [formData, setFormData] = useState({
-    amount: "",
-    type: "income",
-    date: "",
-    description: "",
-    category: "",
-  });
-  const [errors, setErrors] = useState({});
-  const [categoryFilter, setCategoryFilter] = useState("all");
-  const [typeFilter, setTypeFilter] = useState("all");
-  const [dateFilter, setDateFilter] = useState({
-    startDate: "",
-    endDate: "",
-  });
-
   // Cargar datos de prueba al inicio
   useEffect(() => {
     setTransactions(generateTestData());
   }, []);
 
-  // Get unique categories from transactions
+  // =====================================================================
+  // SECCIÓN DE UTILIDADES Y FILTRADO
+  // MEJORA POTENCIAL: Extraer a un módulo separado transactionUtils.js
+  // =====================================================================
+
+  /**
+   * Obtiene categorías únicas de las transacciones existentes
+   * @returns {Array} Categorías únicas
+   */
   const getUniqueCategories = () => {
     const categories = transactions.map((t) => t.category).filter((c) => c);
     return [...new Set(categories)];
   };
 
-  // Filter transactions by selected category, type and date range
+  /**
+   * Filtra transacciones según criterios seleccionados (categoría, tipo, fecha)
+   * MEJORA POTENCIAL: Convertir en función pura que reciba parámetros
+   */
   const filteredTransactions = transactions.filter((t) => {
     // Apply category filter
     if (categoryFilter !== "all" && t.category !== categoryFilter) {
@@ -132,6 +215,15 @@ function Wallet() {
     return true;
   });
 
+  // =====================================================================
+  // SECCIÓN DE VALIDACIÓN
+  // MEJORA POTENCIAL: Extraer a un módulo separado formValidation.js
+  // =====================================================================
+
+  /**
+   * Valida los datos del formulario antes de crear una transacción
+   * @returns {Object} Errores de validación encontrados
+   */
   const validate = () => {
     const newErrors = {};
     if (
@@ -149,10 +241,34 @@ function Wallet() {
     return newErrors;
   };
 
+  // =====================================================================
+  // SECCIÓN DE MANEJO DE CAMBIOS Y EVENTOS
+  // MEJORA POTENCIAL: Extraer a un hook personalizado useFormHandlers
+  // =====================================================================
+
+  /**
+   * Maneja cambios en los campos del formulario
+   * Tiene lógica especial para resetear categoría cuando cambia el tipo
+   */
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+
+    // Si cambia el tipo, resetear la categoría
+    if (name === "type") {
+      setFormData({
+        ...formData,
+        [name]: value,
+        category: "", // Resetear categoría cuando cambia el tipo
+      });
+    } else {
+      setFormData({ ...formData, [name]: value });
+    }
   };
 
+  /**
+   * Maneja el envío del formulario para crear una nueva transacción
+   * MEJORA POTENCIAL: Extraer lógica de persistencia a un servicio
+   */
   const handleSubmit = (e) => {
     e.preventDefault();
     const validationErrors = validate();
@@ -172,7 +288,9 @@ function Wallet() {
     setErrors({});
   };
 
-  // Agregar esta nueva función para limpiar el formulario
+  /**
+   * Limpia el formulario y restablece valores predeterminados
+   */
   const handleClear = () => {
     setFormData({
       amount: "",
@@ -184,7 +302,9 @@ function Wallet() {
     setErrors({});
   };
 
-  // Handle date filter changes
+  /**
+   * Maneja cambios en los filtros de fecha
+   */
   const handleDateFilterChange = (e) => {
     setDateFilter({
       ...dateFilter,
@@ -192,7 +312,9 @@ function Wallet() {
     });
   };
 
-  // Clear date filters
+  /**
+   * Limpia los filtros de fecha
+   */
   const clearDateFilter = () => {
     setDateFilter({
       startDate: "",
@@ -200,7 +322,10 @@ function Wallet() {
     });
   };
 
-  // Añadir función para regenerar datos de prueba
+  /**
+   * Regenera datos de prueba y restablece filtros
+   * MEJORA POTENCIAL: Solo disponible en modo desarrollo
+   */
   const regenerateTestData = () => {
     setTransactions(generateTestData());
     // Resetear filtros
@@ -212,9 +337,54 @@ function Wallet() {
     });
   };
 
+  // =====================================================================
+  // SECCIÓN DE GESTIÓN DE CATEGORÍAS
+  // MEJORA POTENCIAL: Extraer a un hook personalizado useCategoryManager
+  // =====================================================================
+
+  /**
+   * Añade una nueva categoría al catálogo según el tipo seleccionado
+   * Incluye validaciones para evitar duplicados
+   */
+  const addNewCategory = () => {
+    if (!newCategoryInput.trim()) return;
+
+    // Verificar que la categoría no exista ya
+    if (predefinedCategories[formData.type].includes(newCategoryInput.trim())) {
+      alert("Esta categoría ya existe");
+      return;
+    }
+
+    // Agregar la nueva categoría
+    setPredefinedCategories({
+      ...predefinedCategories,
+      [formData.type]: [
+        ...predefinedCategories[formData.type],
+        newCategoryInput.trim(),
+      ],
+    });
+
+    // Seleccionar la nueva categoría
+    setFormData({
+      ...formData,
+      category: newCategoryInput.trim(),
+    });
+
+    // Limpiar y ocultar el input
+    setNewCategoryInput("");
+    setShowNewCategoryInput(false);
+  };
+
+  // =====================================================================
+  // RENDERIZADO DE COMPONENTE
+  // MEJORA POTENCIAL: Dividir en subcomponentes como se mencionó arriba
+  // =====================================================================
   return (
     <div className="p-4 max-w-md mx-auto">
-      {/* Formulario para agregar transacciones */}
+      {/* 
+        FORMULARIO DE TRANSACCIÓN
+        MEJORA POTENCIAL: Extraer a componente <TransactionForm />
+      */}
       <h1 className="text-xl font-semibold text-center mb-4">
         Agregar Transacción
       </h1>
@@ -222,6 +392,7 @@ function Wallet() {
         onSubmit={handleSubmit}
         className="space-y-4 bg-white p-4 rounded shadow"
       >
+        {/* Campo: Monto */}
         <div>
           <label className="block mb-1 text-sm font-medium text-black">
             Monto *
@@ -239,6 +410,7 @@ function Wallet() {
           )}
         </div>
 
+        {/* Campo: Tipo */}
         <div>
           <label className="block mb-1 text-sm font-medium text-black">
             Tipo*
@@ -254,6 +426,7 @@ function Wallet() {
           </select>
         </div>
 
+        {/* Campo: Fecha */}
         <div>
           <label className="block mb-1 text-sm font-medium text-black">
             Fecha*
@@ -268,6 +441,7 @@ function Wallet() {
           {errors.date && <p className="text-red-500 text-xs">{errors.date}</p>}
         </div>
 
+        {/* Campo: Descripción */}
         <div>
           <label className="block mb-1 text-sm font-medium text-black">
             Descripción
@@ -282,21 +456,62 @@ function Wallet() {
           />
         </div>
 
+        {/* 
+          Campo: Categoría con selector y creación 
+          MEJORA POTENCIAL: Extraer a componente <CategorySelector />
+        */}
         <div>
           <label className="block mb-1 text-sm font-medium text-black">
-            Categoría
+            Categoría *
           </label>
-          <input
-            type="text"
-            name="category"
-            value={formData.category}
-            onChange={handleChange}
-            className="w-full px-3 py-2 border rounded text-gray-800"
-            placeholder="Ej: Alimentos, Transporte"
-          />
+          <div className="flex flex-col gap-2">
+            <div className="flex">
+              <select
+                name="category"
+                value={formData.category}
+                onChange={handleChange}
+                className="w-full px-3 py-2 border rounded-l text-gray-800"
+              >
+                <option value="">Seleccionar categoría</option>
+                {predefinedCategories[formData.type]?.map((cat) => (
+                  <option key={cat} value={cat}>
+                    {cat}
+                  </option>
+                ))}
+              </select>
+              <button
+                type="button"
+                onClick={() => setShowNewCategoryInput(!showNewCategoryInput)}
+                className="bg-gray-100 hover:bg-gray-200 px-3 py-2 border-y border-r rounded-r"
+                title="Agregar nueva categoría"
+              >
+                {showNewCategoryInput ? "✕" : "+"}
+              </button>
+            </div>
+
+            {/* Input para nueva categoría */}
+            {showNewCategoryInput && (
+              <div className="flex mt-1">
+                <input
+                  type="text"
+                  value={newCategoryInput}
+                  onChange={(e) => setNewCategoryInput(e.target.value)}
+                  placeholder="Nombre de nueva categoría"
+                  className="flex-grow px-3 py-2 border rounded-l text-gray-800"
+                />
+                <button
+                  type="button"
+                  onClick={addNewCategory}
+                  className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded-r"
+                >
+                  Agregar
+                </button>
+              </div>
+            )}
+          </div>
         </div>
 
-        {/* Reemplazar el botón existente con dos botones en un contenedor flex */}
+        {/* Botones de acción */}
         <div className="flex gap-2">
           <button
             type="submit"
@@ -313,9 +528,127 @@ function Wallet() {
           </button>
         </div>
       </form>
-      {/* Listado de transacciones */}
+
+      {/* 
+        ADMINISTRACIÓN DE CATEGORÍAS
+        MEJORA POTENCIAL: Extraer a componente <CategoryManager />
+      */}
+      <div className="mt-6 bg-white p-4 rounded shadow">
+        <h2 className="text-lg font-semibold mb-2 text-black">
+          Administrar Categorías
+        </h2>
+
+        <div className="flex gap-2 mb-3">
+          <button
+            onClick={() =>
+              document
+                .getElementById("incomeCategoriesSection")
+                .scrollIntoView()
+            }
+            className={`px-3 py-1 rounded ${
+              formData.type === "income"
+                ? "bg-blue-600 text-white"
+                : "bg-gray-200"
+            }`}
+          >
+            Ingresos
+          </button>
+          <button
+            onClick={() =>
+              document
+                .getElementById("expenseCategoriesSection")
+                .scrollIntoView()
+            }
+            className={`px-3 py-1 rounded ${
+              formData.type === "expense"
+                ? "bg-blue-600 text-white"
+                : "bg-gray-200"
+            }`}
+          >
+            Gastos
+          </button>
+        </div>
+
+        {/* Categorías de ingresos */}
+        <div id="incomeCategoriesSection" className="mb-4">
+          <h3 className="text-md font-medium text-gray-800 mb-2">
+            Categorías de Ingresos
+          </h3>
+          <div className="flex flex-wrap gap-2">
+            {predefinedCategories.income.map((cat) => (
+              <div
+                key={cat}
+                className="bg-green-100 text-sm px-2 py-1 rounded flex items-center text-black"
+              >
+                <span>{cat}</span>
+                <button
+                  onClick={() => {
+                    setPredefinedCategories({
+                      ...predefinedCategories,
+                      income: predefinedCategories.income.filter(
+                        (c) => c !== cat
+                      ),
+                    });
+                  }}
+                  className="ml-2 text-red-500 hover:text-red-700"
+                  disabled={cat === "Otros ingresos"}
+                  title={
+                    cat === "Otros ingresos"
+                      ? "No se puede eliminar esta categoría"
+                      : "Eliminar categoría"
+                  }
+                >
+                  {cat !== "Otros ingresos" && "×"}
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Categorías de gastos */}
+        <div id="expenseCategoriesSection">
+          <h3 className="text-md font-medium text-gray-800 mb-2">
+            Categorías de Gastos
+          </h3>
+          <div className="flex flex-wrap gap-2">
+            {predefinedCategories.expense.map((cat) => (
+              <div
+                key={cat}
+                className="bg-red-100 text-sm px-2 py-1 rounded flex items-center text-black"
+              >
+                <span>{cat}</span>
+                <button
+                  onClick={() => {
+                    setPredefinedCategories({
+                      ...predefinedCategories,
+                      expense: predefinedCategories.expense.filter(
+                        (c) => c !== cat
+                      ),
+                    });
+                  }}
+                  className="ml-2 text-red-500 hover:text-red-700"
+                  disabled={cat === "Otros gastos"}
+                  title={
+                    cat === "Otros gastos"
+                      ? "No se puede eliminar esta categoría"
+                      : "Eliminar categoría"
+                  }
+                >
+                  {cat !== "Otros gastos" && "×"}
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* 
+        LISTADO DE TRANSACCIONES
+        MEJORA POTENCIAL: Extraer a componente <TransactionList />
+      */}
       <div className="mt-6">
         <div className="mb-4">
+          {/* Encabezado y botón de prueba */}
           <div className="flex justify-between items-center">
             <h2 className="text-lg font-semibold">Transacciones</h2>
             <button
@@ -326,7 +659,10 @@ function Wallet() {
             </button>
           </div>
 
-          {/* Filters section */}
+          {/* 
+            Panel de filtros
+            MEJORA POTENCIAL: Extraer a componente <FilterPanel />
+          */}
           <div className="flex flex-col sm:flex-row gap-2 bg-gray-100 p-2 rounded">
             {/* Category filter dropdown */}
             <div className="flex items-center">
@@ -372,7 +708,7 @@ function Wallet() {
             </div>
           </div>
 
-          {/* Date filter section */}
+          {/* Filtros de fecha */}
           <div className="mt-2 bg-gray-100 p-2 rounded">
             <div className="text-sm font-medium text-black mb-1">
               Filtrar por fecha:
@@ -409,7 +745,7 @@ function Wallet() {
             </div>
           </div>
 
-          {/* Mostrar indicador de filtros activos */}
+          {/* Indicador de filtros activos */}
           {(categoryFilter !== "all" ||
             typeFilter !== "all" ||
             dateFilter.startDate ||
@@ -439,6 +775,10 @@ function Wallet() {
           )}
         </div>
 
+        {/* 
+          Listado de transacciones filtradas
+          MEJORA POTENCIAL: Extraer a componente <TransactionItems />
+        */}
         {filteredTransactions.length === 0 ? (
           <p className="text-gray-500">
             {transactions.length === 0
