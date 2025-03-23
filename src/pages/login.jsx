@@ -1,10 +1,10 @@
+// src/pages/Login.jsx
 import React, { useState } from 'react';
-import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import '../styles/Login.css';
+import { login } from '../services/auth';  // Asegúrate de importar la función login desde auth.js
+import '../styles/Login.css';  // Importa el archivo de estilos
 
 function Login() {
-  const { login } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState(null);
@@ -12,13 +12,13 @@ function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError(null);
+    setError(null);  // Resetea el error al enviar el formulario
 
     try {
-      await login(email, password);
-      navigate('/wallet');
+      await login(email, password);  // Llama a la función login desde auth.js
+      navigate('/wallet');  // Redirige a la página de wallet después de un inicio de sesión exitoso
     } catch (error) {
-      setError(error.message);
+      setError(error.message);  // Si ocurre un error, lo mostramos
     }
   };
 
@@ -44,7 +44,7 @@ function Login() {
             required
           />
         </div>
-        {error && <p style={{ color: 'red' }}>{error}</p>}
+        {error && <p style={{ color: 'red' }}>{error}</p>}  {/* Mostrar el error si existe */}
         <button type="submit">Login</button>
       </form>
       <div>
