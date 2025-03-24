@@ -46,21 +46,23 @@ const ReminderManager = ({ reminderHook }) => {
     }
   };
 
-  const handleSubmit = (reminderData) => {
+  const handleSubmit = async (reminderData) => {
+    let result;
+  
     if (editingReminder) {
-      const result = updateReminder(editingReminder.id, reminderData);
+      result = await updateReminder(editingReminder.id, reminderData);
       if (!result.success) {
         alert(result.error || "Error al actualizar el recordatorio");
         return;
       }
     } else {
-      const result = addReminder(reminderData);
+      result = await addReminder(reminderData);
       if (!result.success) {
         alert(result.error || "Error al crear el recordatorio");
         return;
       }
     }
-
+  
     setIsCreating(false);
     setEditingReminder(null);
   };

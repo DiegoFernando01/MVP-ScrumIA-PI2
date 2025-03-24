@@ -1,12 +1,15 @@
-import { useState } from "react";
-
+import { useEffect, useState } from "react";
+import { auth } from "../services/firebaseConfig";
+import {
+  saveCategory as addUserCategory, 
+  getUserCategories,
+  deleteCategory as deleteUserCategory, 
+} from "../services/categoryService";
 /**
- * Hook personalizado para gestionar categorías de transacciones
- * @returns {Object} Métodos y estados para manejar categorías
+ * Hook personalizado para gestionar categorías de transacciones por usuario
  */
 const useCategories = () => {
-  // Categorías predefinidas por tipo
-  const [predefinedCategories, setPredefinedCategories] = useState({
+  const [predefinedCategories] = useState({
     income: [
       "Salario",
       "Ventas",
@@ -28,66 +31,90 @@ const useCategories = () => {
     ],
   });
 
-  // Estados para nueva categoría
+  const [customCategories, setCustomCategories] = useState({ income: [], expense: [] });
+
   const [newCategoryInput, setNewCategoryInput] = useState("");
   const [showNewCategoryInput, setShowNewCategoryInput] = useState(false);
 
+  useEffect(() => {
+    const fetchUserCategories = async () => {
+      const user = auth.currentUser;
+      if (!user) return;
+
+      const res = await getUserCategories(user.uid);
+      if (res.success) {
+        const income = res.categories
+          .filter((c) => c.type === "income")
+          .map((c) => ({ name: c.name, id: c.id }));
+
+        const expense = res.categories
+          .filter((c) => c.type === "expense")
+          .map((c) => ({ name: c.name, id: c.id }));
+
+        setCustomCategories({ income, expense });
+      }
+    };
+
+    fetchUserCategories();
+  }, []);
+
   /**
-   * Añade una nueva categoría al catálogo
-   * @param {string} type - Tipo de categoría ('income' o 'expense')
-   * @param {string} categoryName - Nombre de la nueva categoría
-   * @returns {boolean} - Indica si la categoría se añadió con éxito
+   * Añade una categoría personalizada
    */
-  const addCategory = (type, categoryName) => {
+  const addCategory = async (type, categoryName) => {
     if (!categoryName.trim()) return false;
 
-    // Verificar que la categoría no exista ya
-    if (predefinedCategories[type].includes(categoryName.trim())) {
-      return false;
+    // Verifica si ya existe
+    const all = [...predefinedCategories[type], ...customCategories[type].map(c => c.name)];
+    if (all.includes(categoryName.trim())) return false;
+
+    const user = auth.currentUser;
+    if (!user) return false;
+
+    const res = await addUserCategory(user.uid, type, categoryName.trim());
+    if (res.success) {
+      setCustomCategories((prev) => ({
+        ...prev,
+        [type]: [...prev[type], { name: categoryName.trim(), id: res.id }],
+      }));
+      return true;
     }
 
-    // Agregar la nueva categoría
-    setPredefinedCategories({
-      ...predefinedCategories,
-      [type]: [...predefinedCategories[type], categoryName.trim()],
-    });
-
-    return true;
+    return false;
   };
 
   /**
-   * Elimina una categoría del catálogo
-   * @param {string} type - Tipo de categoría ('income' o 'expense')
-   * @param {string} categoryName - Nombre de la categoría a eliminar
+   * Elimina una categoría personalizada (no predefinida)
    */
-  const removeCategory = (type, categoryName) => {
-    // No permitir eliminar categorías por defecto
-    if (
-      (type === "income" && categoryName === "Otros ingresos") ||
-      (type === "expense" && categoryName === "Otros gastos")
-    ) {
-      return false;
+  const removeCategory = async (type, categoryName) => {
+    const catToRemove = customCategories[type].find((c) => c.name === categoryName);
+    if (!catToRemove) return false;
+
+    const res = await deleteUserCategory(catToRemove.id);
+    if (res.success) {
+      setCustomCategories((prev) => ({
+        ...prev,
+        [type]: prev[type].filter((c) => c.id !== catToRemove.id),
+      }));
+      return true;
     }
 
-    setPredefinedCategories({
-      ...predefinedCategories,
-      [type]: predefinedCategories[type].filter((c) => c !== categoryName),
-    });
-
-    return true;
+    return false;
   };
 
   /**
-   * Obtiene las categorías disponibles para un tipo específico
-   * @param {string} type - Tipo de categoría ('income' o 'expense')
-   * @returns {Array} - Lista de categorías disponibles
+   * Devuelve la lista de categorías (predefinidas + personalizadas)
    */
   const getCategoriesByType = (type) => {
-    return predefinedCategories[type] || [];
+    const custom = customCategories[type]?.map((c) => c.name) || [];
+    return [...predefinedCategories[type], ...custom];
   };
 
   return {
-    predefinedCategories,
+    predefinedCategories: {
+      income: getCategoriesByType("income"),
+      expense: getCategoriesByType("expense"),
+    },
     newCategoryInput,
     setNewCategoryInput,
     showNewCategoryInput,

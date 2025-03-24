@@ -346,6 +346,7 @@ function Wallet() {
           categories={categoryManager.predefinedCategories}
           removeCategory={categoryManager.removeCategory}
           currentType={formData.type}
+          addCategory={categoryManager.addCategory} 
         />
       )}
 

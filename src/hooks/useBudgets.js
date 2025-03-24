@@ -1,27 +1,6 @@
 import { useState, useEffect } from "react";
-
-/**
- * Hook personalizado para gestionar presupuestos por categoría
- * @returns {Object} Métodos y estados para manejar presupuestos
- */
-const useBudgets = () => {
-  // Estado para almacenar los presupuestos por categoría
-  const [budgets, setBudgets] = useState([]);
-
-  // Cargar presupuestos guardados al iniciar
-  useEffect(() => {
-    const savedBudgets = localStorage.getItem("categoryBudgets");
-    if (savedBudgets) {
-      setBudgets(JSON.parse(savedBudgets));
-    }
-  }, []);
-
-  // Guardar presupuestos cuando cambian
-  useEffect(() => {
-    if (budgets.length > 0) {
-      localStorage.setItem("categoryBudgets", JSON.stringify(budgets));
-    }
-  }, [budgets]);
+import { getBudgets, saveBudget, deleteBudget } from "../services/budgetService";
+import { auth } from "../services/firebaseConfig";
 
   /**
    * Obtiene el mes y año actual para filtrado de presupuestos
@@ -35,6 +14,37 @@ const useBudgets = () => {
     };
   };
 
+/**
+ * Hook personalizado para gestionar presupuestos por categoría
+ * @returns {Object} Métodos y estados para manejar presupuestos
+ */
+const useBudgets = () => {
+  const [budgets, setBudgets] = useState([]);
+  // Estado para almacenar los presupuestos por categoría
+  const [loading, setLoading] = useState(true);
+
+useEffect(() => {
+  const fetchBudgets = async () => {
+    const user = auth.currentUser;
+    if (!user) return;
+
+    const { month, year } = getCurrentMonthYear();
+    const res = await getBudgets(user.uid, month, year);
+
+    if (res.success) {
+      setBudgets(res.budgets);
+    }
+
+    setLoading(false);
+  };
+
+  fetchBudgets();
+
+  
+}, []);
+
+
+  
   /**
    * Obtiene el presupuesto para una categoría específica en el mes actual
    * @param {string} category - Nombre de la categoría
@@ -55,52 +65,56 @@ const useBudgets = () => {
    * @param {number} amount - Monto del presupuesto
    * @returns {boolean} Indica si la operación fue exitosa
    */
-  const setBudgetForCategory = (category, amount) => {
-    // Validar que el monto sea positivo
+  const setBudgetForCategory = async (category, amount) => {
     if (amount <= 0) return false;
-
+  
     const { month, year } = getCurrentMonthYear();
-
-    // Verificar si ya existe un presupuesto para esta categoría este mes
-    const existingBudgetIndex = budgets.findIndex(
-      (b) => b.category === category && b.month === month && b.year === year
-    );
-
-    if (existingBudgetIndex >= 0) {
-      // Actualizar presupuesto existente
+    const user = auth.currentUser;
+    if (!user) return false;
+  
+    const res = await saveBudget(user.uid, category, amount, month, year);
+    if (res.success) {
+      // Actualiza el estado local
       const updatedBudgets = [...budgets];
-      updatedBudgets[existingBudgetIndex] = {
-        ...updatedBudgets[existingBudgetIndex],
-        amount,
-      };
+      const index = updatedBudgets.findIndex(
+        (b) => b.category === category && b.month === month && b.year === year
+      );
+  
+      if (index >= 0) {
+        updatedBudgets[index].amount = amount;
+      } else {
+        updatedBudgets.push({ category, amount, month, year });
+      }
+  
       setBudgets(updatedBudgets);
-    } else {
-      // Crear nuevo presupuesto
-      setBudgets([...budgets, { category, amount, month, year }]);
+      return true;
     }
-
-    return true;
+  
+    return false;
   };
+  
 
   /**
    * Elimina un presupuesto para una categoría
    * @param {string} category - Nombre de la categoría
    * @returns {boolean} Indica si la operación fue exitosa
    */
-  const removeBudgetForCategory = (category) => {
+  const removeBudgetForCategory = async (category) => {
     const { month, year } = getCurrentMonthYear();
-
-    const filteredBudgets = budgets.filter(
-      (b) => !(b.category === category && b.month === month && b.year === year)
-    );
-
-    if (filteredBudgets.length === budgets.length) {
-      return false; // No se encontró el presupuesto
+    const user = auth.currentUser;
+    if (!user) return false;
+  
+    const res = await deleteBudget(user.uid, category, month, year);
+    if (res.success) {
+      setBudgets(budgets.filter(
+        (b) => !(b.category === category && b.month === month && b.year === year)
+      ));
+      return true;
     }
-
-    setBudgets(filteredBudgets);
-    return true;
+  
+    return false;
   };
+  
 
   /**
    * Calcula el porcentaje utilizado de un presupuesto para una categoría
@@ -162,6 +176,7 @@ const useBudgets = () => {
   };
 
   return {
+    loading,
     budgets: getCurrentBudgets(),
     getBudgetForCategory,
     setBudgetForCategory,

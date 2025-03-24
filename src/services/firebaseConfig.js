@@ -1,6 +1,8 @@
 // src/services/firebaseConfig.js (o donde configures Firebase)
 import { initializeApp } from 'firebase/app';
 import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';  // Importa la función de registro de usuario
+import { getFirestore } from 'firebase/firestore'; // ✅ importar Firestore
+
 
 const firebaseConfig = {
   apiKey: "AIzaSyDW4NU6Gp4TMy9tA1q0KQrH7gSNpTaaFL0",
@@ -15,5 +17,7 @@ const firebaseConfig = {
 // Inicializa Firebase
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);  // Usamos getAuth para obtener la autenticación
+const db = getFirestore(app); // ✅ instancia de Firestore
 
-export { auth, createUserWithEmailAndPassword };  // Exportamos la función también
+
+export { auth, db, createUserWithEmailAndPassword }; // Exportamos la función también

@@ -1,4 +1,11 @@
 import { useState, useEffect } from "react";
+import {
+  saveReminder,
+  getReminders,
+  updateReminder as updateReminderInDB,
+  deleteReminder as deleteReminderFromDB,
+} from "../services/reminderService";
+import { auth } from "../services/firebaseConfig";
 
 /**
  * Hook personalizado para gestionar recordatorios de vencimientos
@@ -12,19 +19,19 @@ const useReminders = () => {
 
   // Cargar recordatorios guardados al iniciar
   useEffect(() => {
-    const savedReminders = localStorage.getItem("paymentReminders");
-    if (savedReminders) {
-      setReminders(JSON.parse(savedReminders));
-    }
+    const fetchReminders = async () => {
+      const user = auth.currentUser;
+      if (!user) return;
+  
+      const res = await getReminders(user.uid);
+      if (res.success) {
+        setReminders(res.reminders);
+      }
+    };
+  
+    fetchReminders();
   }, []);
-
-  // Guardar recordatorios cuando cambian
-  useEffect(() => {
-    if (reminders.length > 0) {
-      localStorage.setItem("paymentReminders", JSON.stringify(reminders));
-    }
-  }, [reminders]);
-
+  
   // Verificar recordatorios próximos periódicamente
   useEffect(() => {
     const checkRemindersDue = () => {
@@ -143,99 +150,65 @@ const useReminders = () => {
   /**
    * Añade un nuevo recordatorio
    */
-  const addReminder = (reminderData) => {
-    // Validar fecha futura para recordatorios únicos
-    if (reminderData.type === "one-time") {
-      const dueDate = new Date(reminderData.dueDate);
-      const today = new Date();
-
-      if (dueDate <= today) {
-        return {
-          success: false,
-          error: "La fecha de vencimiento debe ser futura",
-        };
-      }
-    }
-
-    // Validar fecha de inicio para recordatorios recurrentes
-    if (reminderData.type === "recurring") {
-      const startDate = new Date(reminderData.startDate);
-      const today = new Date();
-
-      if (startDate < today) {
-        return {
-          success: false,
-          error: "La fecha de inicio debe ser actual o futura",
-        };
-      }
-    }
-
+  const addReminder = async (reminderData) => {
+    const user = auth.currentUser;
+    if (!user) return { success: false, error: "Usuario no autenticado" };
+  
     const newReminder = {
       ...reminderData,
       id: reminderData.id || `reminder-${Date.now()}`,
       createdAt: new Date().toISOString(),
       active: true,
     };
+  
+    const res = await saveReminder(user.uid, newReminder);
+    console.log("Resultado del guardado:", res); // 👈🏼 esto te dirá qué se devuelve
 
-    setReminders((prev) => [...prev, newReminder]);
-    return { success: true, id: newReminder.id };
+    if (res.success) {
+      setReminders((prev) => [...prev, newReminder]);
+      return { success: true, id: newReminder.id };
+    }
+  
+    return res;
   };
-
+  
   /**
    * Actualiza un recordatorio existente
    */
-  const updateReminder = (id, reminderData) => {
+  const updateReminder = async (id, updatedData) => {
     const index = reminders.findIndex((r) => r.id === id);
-
-    if (index === -1) {
-      return { success: false, error: "Recordatorio no encontrado" };
-    }
-
-    // Validaciones similares a addReminder
-    if (reminderData.type === "one-time") {
-      const dueDate = new Date(reminderData.dueDate);
-      const today = new Date();
-
-      if (dueDate <= today) {
-        return {
-          success: false,
-          error: "La fecha de vencimiento debe ser futura",
-        };
-      }
-    }
-
-    if (reminderData.type === "recurring") {
-      const startDate = new Date(reminderData.startDate);
-      const today = new Date();
-
-      if (startDate < today) {
-        return {
-          success: false,
-          error: "La fecha de inicio debe ser actual o futura",
-        };
-      }
-    }
-
-    const updatedReminders = [...reminders];
-    updatedReminders[index] = {
+    if (index === -1) return { success: false, error: "Recordatorio no encontrado" };
+  
+    const updatedReminder = {
       ...reminders[index],
-      ...reminderData,
+      ...updatedData,
       updatedAt: new Date().toISOString(),
     };
-
-    setReminders(updatedReminders);
-    return { success: true };
+  
+    const res = await updateReminderInDB(id, updatedReminder);
+    if (res.success) {
+      const updatedList = [...reminders];
+      updatedList[index] = updatedReminder;
+      setReminders(updatedList);
+      return { success: true };
+    }
+  
+    return res;
   };
+  
 
   /**
    * Elimina un recordatorio
    */
-  const deleteReminder = (id) => {
-    setReminders((prev) => prev.filter((r) => r.id !== id));
-    setReminderAlerts((prev) => prev.filter((a) => a.reminderId !== id));
-    return { success: true };
+  const deleteReminder = async (id) => {
+    const res = await deleteReminderFromDB(id);
+    if (res.success) {
+      setReminders((prev) => prev.filter((r) => r.id !== id));
+      setReminderAlerts((prev) => prev.filter((a) => a.reminderId !== id));
+    }
+    return res;
   };
-
+  
   /**
    * Activa o desactiva un recordatorio
    */
