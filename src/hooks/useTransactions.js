@@ -3,7 +3,7 @@ import { auth } from "../services/firebaseConfig";
 import {
   saveTransaction, 
   getUserTransactions,
-  deleteTransaction,
+  deleteTransaction as deleteTransactionService, 
   updateTransaction,
 } from "../services/transactionService";
 
@@ -64,8 +64,8 @@ const useTransactions = () => {
     return res;
   };
 
-  const removeTransaction = async (id) => {
-    const res = await deleteTransaction(id);
+  const deleteTransaction = async (id) => {
+    const res = await deleteTransactionService(id);
     if (res.success) {
       setTransactions((prev) => prev.filter((t) => t.id !== id));
     }
@@ -77,7 +77,7 @@ const useTransactions = () => {
     loading,
     createTransaction, 
     editTransaction,
-    removeTransaction,
+    deleteTransaction,
   };
 };
 

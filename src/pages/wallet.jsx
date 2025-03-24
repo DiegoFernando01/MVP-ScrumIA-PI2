@@ -15,7 +15,8 @@ import useAlerts from "../hooks/useAlerts";
 import useReminders from "../hooks/useReminders";
 import generateTestData from "../utils/testDataGenerator";
 import { validateTransaction } from "../utils/validationUtils";
-import useTransactions from "../hooks/useTransactions";  // Verifica si la ruta es correcta
+import useTransactions from "../hooks/useTransactions"; 
+import Reportes from "../components/wallet/Reportes";
 
 
 /**
@@ -39,7 +40,7 @@ function Wallet() {
   const {
     transactions,
     createTransaction,
-    updateTransaction,
+    editTransaction,
     deleteTransaction,
     loading: loadingTransactions,
   } = useTransactions();
@@ -170,10 +171,13 @@ function Wallet() {
    * Guarda los cambios realizados a una transacción
    */
   const handleSaveEditedTransaction = async (editedTransaction) => {
-    await updateTransaction(editedTransaction.id, editedTransaction);
-    setEditingTransaction(null);
+    const result = await editTransaction(editedTransaction.id, editedTransaction); // Usa editTransaction
+    if (result.success) {
+      setEditingTransaction(null);
+    } else {
+      alert("Error al actualizar la transacción");
+    }
   };
-  
   /**
    * Cancela la edición de una transacción
    */
@@ -219,10 +223,8 @@ function Wallet() {
   };
 
   const handleDeleteTransaction = async (transactionId) => {
-    const result = await deleteTransaction(transactionId);  // Llamamos a deleteTransaction desde el servicio
-    if (result.success) {
-      setTransactions((prev) => prev.filter((t) => t.id !== transactionId));  // Actualizamos el estado eliminando la transacción
-    } else {
+    const result = await deleteTransaction(transactionId); // Usamos el nombre correcto del hook
+    if (!result.success) {
       alert("Error al eliminar la transacción");
     }
   };
@@ -296,6 +298,17 @@ function Wallet() {
               {getTotalUnreadAlerts()}
             </span>
           )}
+        </button>
+
+        <button
+          onClick={() => setActiveTab("reports")}
+          className={`py-2 px-4 font-medium whitespace-nowrap ${
+            activeTab === "reports"
+              ? "text-blue-600 border-b-2 border-blue-600"
+              : "text-gray-500 hover:text-gray-700"
+          }`}
+        >
+          Reportes
         </button>
 
         {/* Botón de salir */}
@@ -389,7 +402,11 @@ function Wallet() {
           addNewCategory={addNewCategory}
         />
       )}
+
+      {activeTab === "reports" && <Reportes transactions={transactions} />}
     </div>
+
+    
   );
 }
 
