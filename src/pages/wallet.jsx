@@ -15,6 +15,8 @@ import useAlerts from "../hooks/useAlerts";
 import useReminders from "../hooks/useReminders";
 import generateTestData from "../utils/testDataGenerator";
 import { validateTransaction } from "../utils/validationUtils";
+import useTransactions from "../hooks/useTransactions";  // Verifica si la ruta es correcta
+
 
 /**
  * Página principal de billetera
@@ -34,7 +36,14 @@ function Wallet() {
   const navigate = useNavigate();
 
   // Estados locales para transacciones y formulario
-  const [transactions, setTransactions] = useState([]);
+  const {
+    transactions,
+    createTransaction,
+    updateTransaction,
+    deleteTransaction,
+    loading: loadingTransactions,
+  } = useTransactions();
+  
   const [formData, setFormData] = useState({
     amount: "",
     type: "income",
@@ -50,7 +59,9 @@ function Wallet() {
 
   // Cargar datos de prueba al inicio
   useEffect(() => {
-    setTransactions(generateTestData());
+    if (import.meta.env.MODE === "development") {
+      // setTransactions(generateTestData());
+    }
   }, []);
 
   // Comprobar alertas cuando cambien las transacciones o presupuestos
@@ -93,15 +104,15 @@ function Wallet() {
   /**
    * Maneja el envío del formulario
    */
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const validationErrors = validateTransaction(formData);
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
       return;
     }
-
-    setTransactions([...transactions, { ...formData, id: Date.now() }]);
+  
+    await createTransaction(formData); // con Firebase
     setFormData({
       amount: "",
       type: "income",
@@ -158,15 +169,11 @@ function Wallet() {
   /**
    * Guarda los cambios realizados a una transacción
    */
-  const handleSaveEditedTransaction = (editedTransaction) => {
-    setTransactions(
-      transactions.map((t) =>
-        t.id === editedTransaction.id ? editedTransaction : t
-      )
-    );
+  const handleSaveEditedTransaction = async (editedTransaction) => {
+    await updateTransaction(editedTransaction.id, editedTransaction);
     setEditingTransaction(null);
   };
-
+  
   /**
    * Cancela la edición de una transacción
    */
@@ -174,13 +181,7 @@ function Wallet() {
     setEditingTransaction(null);
   };
 
-  /**
-   * Elimina una transacción
-   */
-  const handleDeleteTransaction = (transactionId) => {
-    setTransactions(transactions.filter((t) => t.id !== transactionId));
-  };
-
+  
   /**
    * Maneja el cierre de sesión
    */
@@ -216,6 +217,16 @@ function Wallet() {
       alertManager.getUnreadCount() + reminderManager.getUnreadReminderCount()
     );
   };
+
+  const handleDeleteTransaction = async (transactionId) => {
+    const result = await deleteTransaction(transactionId);  // Llamamos a deleteTransaction desde el servicio
+    if (result.success) {
+      setTransactions((prev) => prev.filter((t) => t.id !== transactionId));  // Actualizamos el estado eliminando la transacción
+    } else {
+      alert("Error al eliminar la transacción");
+    }
+  };
+  
 
   return (
     <div className="p-4 max-w-md mx-auto">
