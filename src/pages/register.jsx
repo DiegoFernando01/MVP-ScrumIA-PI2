@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { signUp } from "../services/auth"; // Importa signUp desde auth.js
 import { saveUserData } from "../services/userService"; // Importa la función para guardar datos en Firestore
 import { auth } from "../services/firebaseConfig"; // Asegúrate de importar auth
+import "../styles/Register.css";
+
 
 function Register() {
   const [firstName, setFirstName] = useState(""); // Estado para nombre
