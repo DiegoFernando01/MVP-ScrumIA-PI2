@@ -1,49 +1,40 @@
 import React, { useState, useEffect } from "react";
 import { Bar } from "react-chartjs-2";
-import { Chart as ChartJS, CategoryScale, LinearScale, BarElement } from "chart.js";
-import { getFormattedData } from "../../utils/reportUtils";
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement
+} from "chart.js";
+import { getCategoryComparisonData } from "../../utils/reportUtils"; // ✅ usamos la correcta
 
 ChartJS.register(CategoryScale, LinearScale, BarElement);
 
 const Reportes = ({ transactions }) => {
-  const [reportType, setReportType] = useState("monthly"); // Mensual, semanal, diario
+  const [reportType, setReportType] = useState("monthly"); // Por si quieres usarlo en el futuro
   const [transactionType, setTransactionType] = useState("income"); // Ingresos o Gastos
-  const [categoryData, setCategoryData] = useState([]);
   const [filteredTransactions, setFilteredTransactions] = useState([]);
 
-  // Función para filtrar las transacciones según el tipo (ingreso o gasto)
+  // Filtrar las transacciones según el tipo seleccionado (ingresos o gastos)
   useEffect(() => {
-    const filtered = transactions.filter(
-      (t) => t.type === transactionType
-    );
+    const filtered = transactions.filter((t) => t.type === transactionType);
     setFilteredTransactions(filtered);
   }, [transactionType, transactions]);
 
-  // Función para manejar los cambios en el tipo de reporte
-  const handleReportChange = (e) => {
-    setReportType(e.target.value);
-  };
-
-  // Función para manejar los cambios en el tipo de transacción (ingreso o gasto)
-  const handleTransactionChange = (e) => {
-    setTransactionType(e.target.value);
-  };
-
-  // Generación de los datos del gráfico y la tabla comparativa
-  const chartData = getFormattedData(filteredTransactions, reportType); // Aquí formateas los datos según el tipo de reporte
-  const categories = [...new Set(filteredTransactions.map((t) => t.category))]; // Categorías únicas para la tabla
+  // Obtener datos del gráfico por categoría
+  const chartData = getCategoryComparisonData(filteredTransactions, transactionType);
+  const categories = [...new Set(filteredTransactions.map((t) => t.category))];
 
   return (
     <div>
       <h3>Reportes Financieros</h3>
 
       <div className="flex gap-4">
-        {/* Select para elegir el tipo de transacción (Ingresos/Gastos) */}
         <div>
           <label>Tipo de Transacción:</label>
           <select
             value={transactionType}
-            onChange={handleTransactionChange}
+            onChange={(e) => setTransactionType(e.target.value)}
             className="border p-2"
           >
             <option value="income">Ingresos</option>
@@ -51,12 +42,11 @@ const Reportes = ({ transactions }) => {
           </select>
         </div>
 
-        {/* Select para elegir el tipo de reporte (Diario, Semanal, Mensual) */}
         <div>
           <label>Ver reporte:</label>
           <select
             value={reportType}
-            onChange={handleReportChange}
+            onChange={(e) => setReportType(e.target.value)}
             className="border p-2"
           >
             <option value="daily">Diario</option>
@@ -66,31 +56,34 @@ const Reportes = ({ transactions }) => {
         </div>
       </div>
 
-      {/* Gráfico de Reportes */}
+      {/* Gráfico de barras */}
       <div className="mt-4">
-      <Bar
-            data={chartData}
-            options={{
-                responsive: true,
-                plugins: {
-                legend: {
-                    position: "top",
-                },
-                },
-                scales: {
-                y: {
-                    min: 0, // Mínimo valor del eje Y
-                    max: 1000000, // Máximo valor del eje Y (1 millón)
-                    ticks: {
-                    stepSize: 100000, // Este valor establece el intervalo entre cada marca (puedes ajustarlo según tus necesidades)
-                    },
-                },
-                },
-            }}
-            />
+        <Bar
+          data={chartData}
+          options={{
+            responsive: true,
+            plugins: {
+              legend: {
+                position: "top"
+              }
+            },
+            scales: {
+              y: {
+                min: 0,
+                max: 1000000,
+                ticks: {
+                  stepSize: 100000,
+                  callback: function (value) {
+                    return `$${value.toLocaleString()}`;
+                  }
+                }
+              }
+            }
+          }}
+        />
       </div>
 
-      {/* Tabla Comparativa por Categorías */}
+      {/* Tabla comparativa */}
       <div className="mt-6">
         <h4>Comparativa por Categorías</h4>
         <table className="min-w-full table-auto">
@@ -102,13 +95,9 @@ const Reportes = ({ transactions }) => {
           </thead>
           <tbody>
             {categories.map((category) => {
-              const categoryTransactions = filteredTransactions.filter(
-                (t) => t.category === category
-              );
-              const total = categoryTransactions.reduce(
-                (sum, transaction) => sum + parseFloat(transaction.amount),
-                0
-              );
+              const total = filteredTransactions
+                .filter((t) => t.category === category)
+                .reduce((sum, t) => sum + parseFloat(t.amount), 0);
               return (
                 <tr key={category}>
                   <td className="px-4 py-2 border">{category}</td>
