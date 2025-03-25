@@ -22,8 +22,9 @@ function Register() {
     setSuccessMessage(""); // Limpiar el mensaje de éxito anterior
 
     try {
-      // Registra al usuario con la función signUp
-      await signUp(email, password);
+      
+      const fullName = `${firstName} ${lastName}`;
+      await signUp(email, password, fullName);
 
       // Obtén el UID del usuario autenticado
       const uid = auth.currentUser?.uid;

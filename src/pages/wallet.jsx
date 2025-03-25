@@ -17,6 +17,8 @@ import generateTestData from "../utils/testDataGenerator";
 import { validateTransaction } from "../utils/validationUtils";
 import useTransactions from "../hooks/useTransactions"; 
 import Reportes from "../components/wallet/Reportes";
+import { getUserData } from "../services/userService";
+
 
 
 /**
@@ -57,6 +59,20 @@ function Wallet() {
 
   // Estado para manejar la edición de transacciones
   const [editingTransaction, setEditingTransaction] = useState(null);
+
+  const [userName, setUserName] = useState("");
+
+  useEffect(() => {
+    const fetchUserName = async () => {
+      const data = await getUserData();
+      console.log("Datos del usuario:", data);
+      if (data) {
+        setUserName(`${data.firstName} ${data.lastName}`);
+      }
+    };
+  
+    fetchUserName();
+  }, []);
 
   // Cargar datos de prueba al inicio
   useEffect(() => {
@@ -232,6 +248,7 @@ function Wallet() {
 
   return (
     <div className="p-4 max-w-md mx-auto">
+
       {/* Selector de pestañas */}
       <div className="flex mb-6 border-b overflow-x-auto">
         <button
@@ -320,6 +337,10 @@ function Wallet() {
         </button>
       </div>
 
+      <h2 className="text-xl font-semibold text-gray-800 mb-4">
+        Bienvenido, {userName || "Usuario"}!
+      </h2>
+
       {/* Contenido según la pestaña seleccionada */}
       {activeTab === "transactions" && (
         <>
@@ -405,6 +426,8 @@ function Wallet() {
 
       {activeTab === "reports" && <Reportes transactions={transactions} />}
     </div>
+
+    
 
     
   );

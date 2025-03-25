@@ -1,19 +1,25 @@
 import { auth } from './firebaseConfig';  // Importa la configuración de Firebase
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from 'firebase/auth';
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, updateProfile } from 'firebase/auth';
+
 
 // Función para registrar un nuevo usuario
-export const signUp = async (email, password) => {
+export const signUp = async (email, password, name) => {
   try {
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-    return userCredential;  // Devuelve la credencial del usuario (información del usuario autenticado)
+
+    // ⬇️ Guardamos el nombre completo como displayName en Firebase Auth
+    await updateProfile(userCredential.user, {
+      displayName: name
+    });
+
+    return userCredential;
   } catch (error) {
-    // Manejo de errores específico
     if (error.code === 'auth/email-already-in-use') {
       throw new Error('Este correo ya está registrado.');
     } else if (error.code === 'auth/weak-password') {
       throw new Error('La contraseña debe tener al menos 6 caracteres.');
     } else {
-      throw new Error(error.message);  // Error genérico
+      throw new Error(error.message);
     }
   }
 };

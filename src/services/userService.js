@@ -1,5 +1,5 @@
-import { getFirestore, doc, setDoc } from 'firebase/firestore';
-import { auth } from './firebaseConfig';  // Importa la configuración de Firebase
+import { doc, getDoc } from "firebase/firestore";
+import { auth, db } from "./firebaseConfig"; // Importa la configuración de Firebase
 
 // Función para guardar usuario en Firestore
 export const saveUserData = async (firstName, lastName, email) => {
@@ -27,3 +27,19 @@ export const saveUserData = async (firstName, lastName, email) => {
     alert('Hubo un error al guardar tus datos. Intenta nuevamente.');  // Notificación de error
   }
 };
+
+// Obtener datos del usuario desde Firestore
+export const getUserData = async () => {
+  const user = auth.currentUser;
+  if (!user) return null;
+
+  const docRef = doc(db, "Usuarios", user.uid);
+  const docSnap = await getDoc(docRef);
+
+  if (docSnap.exists()) {
+    return docSnap.data(); // Devuelve { firstName, lastName, email }
+  } else {
+    return null;
+  }
+};
+

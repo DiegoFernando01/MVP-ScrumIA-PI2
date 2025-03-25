@@ -6,7 +6,7 @@ import {
   LinearScale,
   BarElement
 } from "chart.js";
-import { getCategoryComparisonData } from "../../utils/reportUtils"; // ✅ usamos la correcta
+import { getCategoryComparisonData } from "../../utils/reportUtils"; 
 
 ChartJS.register(CategoryScale, LinearScale, BarElement);
 
