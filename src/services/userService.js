@@ -1,4 +1,4 @@
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, getFirestore } from "firebase/firestore";
 import { auth, db } from "./firebaseConfig"; // Importa la configuración de Firebase
 
 // Función para guardar usuario en Firestore
