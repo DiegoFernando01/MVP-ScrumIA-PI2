@@ -1,7 +1,7 @@
 // src/routes/AuthRoutes.jsx
 import React from 'react';
 import { Route, Routes } from 'react-router-dom';
-import Wallet from '../pages/Wallet';
+import Wallet from '../pages/wallet.jsx';
 import ProtectedRoute from '../components/ProtectedRoute.jsx';
 
 function AuthRoutes() {
