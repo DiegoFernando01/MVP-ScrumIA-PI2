@@ -19,13 +19,14 @@ const TransactionForm = ({
 }) => {
   return (
     <div>
-      <h1 className="text-xl font-semibold text-center mb-4">
-        Agregar Transacción
-      </h1>
+      
       <form
         onSubmit={handleSubmit}
         className="space-y-4 bg-white p-4 rounded shadow"
       >
+        <h2 className="text-xl text-black font-semibold text-center mb-4">
+        Agregar Transacción
+        </h2>
         {/* Campo: Monto */}
         <div>
           <label className="block mb-1 text-sm font-medium text-black">

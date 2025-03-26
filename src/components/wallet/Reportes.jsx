@@ -26,28 +26,28 @@ const Reportes = ({ transactions }) => {
   const categories = [...new Set(filteredTransactions.map((t) => t.category))];
 
   return (
-    <div>
-      <h3>Reportes Financieros</h3>
+    <div className="bg-white p-4 rounded shadow text-black">
+      <h3 className="text-black">Reportes Financieros</h3>
 
       <div className="flex gap-4">
         <div>
-          <label>Tipo de Transacción:</label>
+          <label >Tipo de Transacción:</label>
           <select
             value={transactionType}
             onChange={(e) => setTransactionType(e.target.value)}
-            className="border p-2"
+            className="border p-2 rounded"
           >
-            <option value="income">Ingresos</option>
-            <option value="expense">Gastos</option>
+            <option  value="income">Ingresos</option>
+            <option  value="expense">Gastos</option>
           </select>
         </div>
 
         <div>
-          <label>Ver reporte:</label>
+          <label >Ver reporte:</label>
           <select
             value={reportType}
             onChange={(e) => setReportType(e.target.value)}
-            className="border p-2"
+            className="border p-2 rounded"
           >
             <option value="daily">Diario</option>
             <option value="weekly">Semanal</option>
@@ -57,7 +57,7 @@ const Reportes = ({ transactions }) => {
       </div>
 
       {/* Gráfico de barras */}
-      <div className="mt-4">
+      <div className="mt-4 ">
         <Bar
           data={chartData}
           options={{
@@ -85,7 +85,7 @@ const Reportes = ({ transactions }) => {
 
       {/* Tabla comparativa */}
       <div className="mt-6">
-        <h4>Comparativa por Categorías</h4>
+        <h4 >Comparativa por Categorías</h4>
         <table className="min-w-full table-auto">
           <thead>
             <tr>

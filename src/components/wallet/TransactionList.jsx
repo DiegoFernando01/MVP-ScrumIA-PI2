@@ -31,7 +31,7 @@ const TransactionList = ({
 
       <div className="mb-4">
         {/* Encabezado y botón de prueba */}
-        <div className="flex justify-between items-center">
+        <div className="flex justify-between items-center mb-2">
           <h2 className="text-lg font-semibold">Transacciones</h2>
           <button
             onClick={regenerateTestData}
