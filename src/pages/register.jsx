@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { signUp } from "../services/auth.js"; // Importa signUp desde auth.js
 import { saveUserData } from "../services/userService.js"; // Importa la función para guardar datos en Firestore
-import { auth } from "../services/firebaseConfig"; // Asegúrate de importar auth
+import { auth } from "../services/firebaseConfig.js"; // Asegúrate de importar auth
 import "../styles/Register.css";
 
 
