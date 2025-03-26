@@ -247,10 +247,11 @@ function Wallet() {
   
 
   return (
-    <div className="p-4 max-w-md mx-auto">
+    <div>
+    <div className="fixed top-0 left-1/2 -translate-x-1/2 w-[80%] max-h-screen p-4 overflow-y-auto overflow-x-auto">
 
       {/* Selector de pestañas */}
-      <div className="flex mb-6 border-b overflow-x-auto">
+      <div className="flex items-center justify-center mb-6 gap-4 border-b overflow-x-auto">
         <button
           onClick={() => setActiveTab("transactions")}
           className={`py-2 px-4 font-medium whitespace-nowrap ${
@@ -331,19 +332,20 @@ function Wallet() {
         {/* Botón de salir */}
         <button
           onClick={handleLogout}
-          className="py-2 px-4 font-medium whitespace-nowrap ml-auto text-red-500 hover:text-red-700 border-b-2 border-transparent"
+          className="py-2 px-4 font-medium whitespace-nowrap  text-red-500 hover:text-red-700 border-b-2 border-transparent"
         >
           Salir
         </button>
       </div>
-
-      <h2 className="text-xl font-semibold text-gray-800 mb-4">
+      <div  className=" p-4 max-w-md mx-auto" >
+      <h2 className="text-xl font-semibold text-blue-400 mb-4">
         Bienvenido, {userName || "Usuario"}!
       </h2>
 
       {/* Contenido según la pestaña seleccionada */}
       {activeTab === "transactions" && (
         <>
+        
           {/* Formulario de transacción */}
           <TransactionForm
             formData={formData}
@@ -409,8 +411,14 @@ function Wallet() {
         <ReminderManager reminderHook={reminderManager} />
       )}
 
-      {/* Modal de edición de transacción */}
-      {editingTransaction && (
+      
+
+      {activeTab === "reports" && <Reportes transactions={transactions} />}
+      </div>
+      
+    </div>
+    {/* Modal de edición de transacción */}
+    {editingTransaction && (
         <EditTransactionModal
           transaction={editingTransaction}
           onSave={handleSaveEditedTransaction}
@@ -423,8 +431,6 @@ function Wallet() {
           addNewCategory={addNewCategory}
         />
       )}
-
-      {activeTab === "reports" && <Reportes transactions={transactions} />}
     </div>
 
     
