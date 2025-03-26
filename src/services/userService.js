@@ -1,4 +1,4 @@
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, getFirestore, setDoc } from "firebase/firestore";
 import { auth, db } from "./firebaseConfig"; // Importa la configuración de Firebase
 
 // Función para guardar usuario en Firestore
@@ -14,6 +14,7 @@ export const saveUserData = async (firstName, lastName, email) => {
 
   try {
     // Creamos o actualizamos el documento en la colección 'Usuarios'
+    
     await setDoc(doc(db, 'Usuarios', uid), {
       firstName,
       lastName,
