@@ -159,6 +159,17 @@ function Wallet() {
       setErrors(validationErrors);
       return;
     }
+
+        // 🔒 Verificación de presupuesto antes de guardar gasto
+    if (formData.type === "expense") {
+      const usage = budgetManager.calculateBudgetUsage(formData.category, transactions);
+      const remaining = usage.budgetAmount - usage.totalExpenses;
+
+      if (formData.amount > remaining) {
+        alert(`No puedes registrar este gasto porque supera el presupuesto disponible en la categoría "${formData.category}".`);
+        return;
+      }
+    }
   
     await createTransaction(formData); // con Firebase
     setFormData({
