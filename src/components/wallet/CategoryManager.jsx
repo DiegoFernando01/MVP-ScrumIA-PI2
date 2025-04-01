@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 /**
  * Componente para administrar categorías
@@ -11,96 +11,227 @@ const CategoryManager = ({
 }) => {
   const [activeTab, setActiveTab] = useState(currentType || "income");
   const [newCatInput, setNewCatInput] = useState("");
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [animation, setAnimation] = useState("");
 
-  const handleAddCategory = () => {
-    if (!newCatInput.trim()) return;
+  // Limpiar mensajes después de un tiempo
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setError("");
+      setSuccess("");
+    }, 3000);
+    return () => clearTimeout(timer);
+  }, [error, success]);
 
-    const success = addCategory(activeTab, newCatInput.trim());
-    if (!success) {
-      alert("La categoría ya existe o es inválida.");
+  const handleAddCategory = async () => {
+    if (!newCatInput.trim()) {
+      setError("Por favor ingresa un nombre para la categoría");
       return;
     }
 
+    setLoading(true);
+    const result = await addCategory(activeTab, newCatInput.trim());
+    setLoading(false);
+
+    if (!result) {
+      setError("La categoría ya existe o es inválida");
+      return;
+    }
+
+    setSuccess(`Categoría "${newCatInput}" agregada correctamente`);
     setNewCatInput("");
+    setAnimation("animate-pulse");
+    setTimeout(() => setAnimation(""), 500);
+  };
+
+  const handleRemoveCategory = async (type, categoryName) => {
+    if (
+      (type === "income" && categoryName === "Otros ingresos") ||
+      (type === "expense" && categoryName === "Otros gastos")
+    ) {
+      setError("No se pueden eliminar las categorías predeterminadas");
+      return;
+    }
+
+    const confirmed = confirm(`¿Estás seguro de eliminar la categoría "${categoryName}"?`);
+    if (!confirmed) return;
+
+    setLoading(true);
+    const result = await removeCategory(type, categoryName);
+    setLoading(false);
+
+    if (!result) {
+      setError("No se pudo eliminar la categoría");
+      return;
+    }
+
+    setSuccess(`Categoría "${categoryName}" eliminada correctamente`);
+  };
+
+  // Obtener el ícono apropiado para la categoría
+  const getCategoryIcon = (category) => {
+    const incomeIcons = {
+      "Salario": "💵",
+      "Ventas": "🏷️",
+      "Inversiones": "📈",
+      "Préstamo": "🏦",
+      "Regalo": "🎁",
+      "Otros ingresos": "💰"
+    };
+
+    const expenseIcons = {
+      "Alimentación": "🍔",
+      "Transporte": "🚗",
+      "Vivienda": "🏠",
+      "Entretenimiento": "🎮",
+      "Salud": "💊",
+      "Educación": "📚",
+      "Ropa": "👕",
+      "Servicios": "📱",
+      "Otros gastos": "🛒"
+    };
+
+    if (activeTab === "income") {
+      return incomeIcons[category] || "💵";
+    } else {
+      return expenseIcons[category] || "💸";
+    }
+  };
+
+  const handleKeyPress = (e) => {
+    if (e.key === "Enter") {
+      handleAddCategory();
+    }
   };
 
   return (
-    <div className="bg-white p-4 rounded shadow">
-      <h2 className="text-lg font-semibold mb-2 text-black">
-        Administrar Categorías
-      </h2>
-
-      <div className="flex gap-2 mb-3">
-        <button
-          onClick={() => setActiveTab("income")}
-          className={`px-3 py-1 rounded ${
-            activeTab === "income" ? "bg-blue-600 text-white" : "bg-gray-200"
-          }`}
-        >
-          Ingresos
-        </button>
-        <button
-          onClick={() => setActiveTab("expense")}
-          className={`px-3 py-1 rounded ${
-            activeTab === "expense" ? "bg-blue-600 text-white" : "bg-gray-200"
-          }`}
-        >
-          Gastos
-        </button>
+    <div className="card">
+      <div className="card-header">
+        <h2 className="card-title">
+          <span className="card-icon">🏷️</span> Administrar Categorías
+        </h2>
+        <p className="text-gray-500 text-sm">Personaliza tus categorías para un mejor control de tus finanzas</p>
       </div>
 
-      <div>
-        <h3 className="text-md font-medium text-gray-800 mb-2">
+      {/* Pestañas para cambiar entre ingresos y gastos */}
+      <div className="category-tabs-container">
+        <div className="category-tabs">
+          <button
+            onClick={() => setActiveTab("income")}
+            className={`category-tab ${activeTab === "income" ? "active-tab income" : ""}`}
+          >
+            <span className="tab-icon">💰</span>
+            <span className="tab-text">Ingresos</span>
+          </button>
+          <button
+            onClick={() => setActiveTab("expense")}
+            className={`category-tab ${activeTab === "expense" ? "active-tab expense" : ""}`}
+          >
+            <span className="tab-icon">💸</span>
+            <span className="tab-text">Gastos</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Mensajes de estado */}
+      {error && (
+        <div className="error-message">
+          <span className="error-icon">❌</span> {error}
+        </div>
+      )}
+      {success && (
+        <div className="success-message">
+          <span className="success-icon">✅</span> {success}
+        </div>
+      )}
+
+      {/* Sección de contenido */}
+      <div className="category-content">
+        <h3 className="category-section-title">
+          <span className="section-icon">
+            {activeTab === "income" ? "📋" : "📋"}
+          </span>
           Categorías de {activeTab === "income" ? "Ingresos" : "Gastos"}
         </h3>
 
-        {/* Listado de categorías */}
-        <div className="flex flex-wrap gap-2 mb-3">
-          {categories[activeTab].map((cat) => (
-            <div
-              key={cat}
-              className={`${
-                activeTab === "income"
-                  ? "bg-green-100"
-                  : "bg-red-100"
-              } text-sm px-2 py-1 rounded flex items-center text-black`}
-            >
-              <span>{cat}</span>
-              <button
-                onClick={() => removeCategory(activeTab, cat)}
-                className="ml-2 text-red-500 hover:text-red-700"
-                disabled={
-                  (activeTab === "income" && cat === "Otros ingresos") ||
-                  (activeTab === "expense" && cat === "Otros gastos")
-                }
-                title={
-                  (activeTab === "income" && cat === "Otros ingresos") ||
-                  (activeTab === "expense" && cat === "Otros gastos")
-                    ? "No se puede eliminar esta categoría"
-                    : "Eliminar categoría"
-                }
-              >
-                {(cat !== "Otros ingresos" && cat !== "Otros gastos") && "×"}
-              </button>
+        {/* Contenedor de categorías */}
+        <div className={`category-chips-container ${animation}`}>
+          {categories[activeTab].length === 0 ? (
+            <div className="empty-categories">
+              <div className="empty-icon">📝</div>
+              <p>No hay categorías definidas</p>
+              <p className="empty-hint">Añade categorías para organizar tus finanzas</p>
             </div>
-          ))}
+          ) : (
+            categories[activeTab].map((cat) => (
+              <div
+                key={cat}
+                className={`category-chip ${activeTab === "income" ? "income" : "expense"}`}
+              >
+                <span className="category-icon">{getCategoryIcon(cat)}</span>
+                <span className="category-name">{cat}</span>
+                {(cat !== "Otros ingresos" && cat !== "Otros gastos") && (
+                  <button
+                    onClick={() => handleRemoveCategory(activeTab, cat)}
+                    className="delete-category-btn"
+                    title="Eliminar categoría"
+                  >
+                    <span className="delete-icon">×</span>
+                  </button>
+                )}
+              </div>
+            ))
+          )}
         </div>
 
-        {/* Agregar nueva categoría */}
-        <div className="flex gap-2">
-          <input
-            type="text"
-            value={newCatInput}
-            onChange={(e) => setNewCatInput(e.target.value)}
-            placeholder="Nueva categoría"
-            className="border px-2 py-1 rounded text-sm flex-grow"
-          />
+        {/* Formulario para añadir nueva categoría */}
+        <div className="add-category-form">
+          <div className="input-with-icon">
+            <span className="input-icon">🏷️</span>
+            <input
+              type="text"
+              value={newCatInput}
+              onChange={(e) => {
+                setNewCatInput(e.target.value);
+                setError("");
+              }}
+              onKeyPress={handleKeyPress}
+              placeholder={`Nueva categoría de ${activeTab === "income" ? "ingreso" : "gasto"}...`}
+              className="form-input with-icon"
+            />
+          </div>
           <button
             onClick={handleAddCategory}
-            className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 text-sm"
+            disabled={loading}
+            className={`btn btn-primary ${loading ? "btn-loading" : ""}`}
           >
-            Agregar
+            {loading ? (
+              <>
+                <span className="loading-spinner"></span>
+                <span>Agregando...</span>
+              </>
+            ) : (
+              <>
+                <span className="add-icon">+</span>
+                <span>Agregar</span>
+              </>
+            )}
           </button>
+        </div>
+
+        {/* Sugerencias de uso */}
+        <div className="category-tips">
+          <div className="tip-header">
+            <span className="tip-icon">💡</span>
+            <h4>Consejos:</h4>
+          </div>
+          <ul className="tip-list">
+            <li>Crea categorías específicas para un mejor análisis de tus finanzas</li>
+            <li>Las categorías "Otros ingresos" y "Otros gastos" no se pueden eliminar</li>
+            <li>Utiliza nombres claros y concisos para tus categorías</li>
+          </ul>
         </div>
       </div>
     </div>

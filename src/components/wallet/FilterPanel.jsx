@@ -40,6 +40,10 @@ const FilterPanel = ({
       parts.push(`Hasta ${dateFilter.endDate}`);
     }
 
+    if (searchText) {
+      parts.push(`Búsqueda: "${searchText}"`);
+    }
+
     return parts.join(" y ");
   };
 
@@ -68,7 +72,7 @@ const FilterPanel = ({
             onClick={() => setSearchText("")}
             className="btn-filter btn-filter-secondary"
           >
-            Limpiar búsqueda
+            <span>🗑️</span> Limpiar búsqueda
           </button>
         )}
       </div>
@@ -161,7 +165,7 @@ const FilterPanel = ({
             onClick={clearDateFilter}
             className="btn-filter btn-filter-secondary"
           >
-            Limpiar filtro de fechas
+            <span>📅</span> Limpiar fechas
           </button>
         )}
         
@@ -170,7 +174,7 @@ const FilterPanel = ({
             onClick={resetAllFilters}
             className="btn-filter btn-filter-primary"
           >
-            Restablecer todos los filtros
+            <span>🔄</span> Restablecer todos los filtros
           </button>
         )}
       </div>

@@ -4,11 +4,21 @@ import {
   Chart as ChartJS,
   CategoryScale,
   LinearScale,
-  BarElement
+  BarElement,
+  Title,
+  Tooltip,
+  Legend
 } from "chart.js";
 import { getCategoryComparisonData } from "../../utils/reportUtils"; 
 
-ChartJS.register(CategoryScale, LinearScale, BarElement);
+ChartJS.register(
+  CategoryScale, 
+  LinearScale, 
+  BarElement,
+  Title,
+  Tooltip,
+  Legend
+);
 
 const Reportes = ({ transactions }) => {
   const [reportType, setReportType] = useState("monthly"); // Por si quieres usarlo en el futuro
@@ -26,24 +36,24 @@ const Reportes = ({ transactions }) => {
   const categories = [...new Set(filteredTransactions.map((t) => t.category))];
 
   return (
-    <div className="bg-white p-4 rounded shadow text-black">
+    <div className="bg-white p-4 rounded shadow text-black overflow-x-hidden">
       <h3 className="text-black">Reportes Financieros</h3>
 
-      <div className="flex gap-4">
+      <div className="flex flex-wrap gap-4">
         <div>
-          <label >Tipo de Transacción:</label>
+          <label>Tipo de Transacción:</label>
           <select
             value={transactionType}
             onChange={(e) => setTransactionType(e.target.value)}
             className="border p-2 rounded"
           >
-            <option  value="income">Ingresos</option>
-            <option  value="expense">Gastos</option>
+            <option value="income">Ingresos</option>
+            <option value="expense">Gastos</option>
           </select>
         </div>
 
         <div>
-          <label >Ver reporte:</label>
+          <label>Ver reporte:</label>
           <select
             value={reportType}
             onChange={(e) => setReportType(e.target.value)}
@@ -57,36 +67,48 @@ const Reportes = ({ transactions }) => {
       </div>
 
       {/* Gráfico de barras */}
-      <div className="mt-4 ">
-        <Bar
-          data={chartData}
-          options={{
-            responsive: true,
-            plugins: {
-              legend: {
-                position: "top"
-              }
-            },
-            scales: {
-              y: {
-                min: 0,
-                max: 1000000,
-                ticks: {
-                  stepSize: 100000,
-                  callback: function (value) {
-                    return `$${value.toLocaleString()}`;
+      <div className="mt-4 w-full overflow-hidden">
+        <div className="chart-container" style={{ position: 'relative', height: '400px', width: '100%' }}>
+          <Bar
+            data={chartData}
+            options={{
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: {
+                legend: {
+                  position: "top"
+                },
+                title: {
+                  display: true,
+                  text: `${transactionType === 'income' ? 'Ingresos' : 'Gastos'} por Categoría`
+                }
+              },
+              scales: {
+                x: {
+                  ticks: {
+                    autoSkip: true,
+                    maxRotation: 45,
+                    minRotation: 45
+                  }
+                },
+                y: {
+                  beginAtZero: true,
+                  ticks: {
+                    callback: function (value) {
+                      return `$${value.toLocaleString()}`;
+                    }
                   }
                 }
               }
-            }
-          }}
-        />
+            }}
+          />
+        </div>
       </div>
 
       {/* Tabla comparativa */}
-      <div className="mt-6">
-        <h4 >Comparativa por Categorías</h4>
-        <table className="min-w-full table-auto">
+      <div className="mt-6 overflow-x-auto">
+        <h4>Comparativa por Categorías</h4>
+        <table className="w-full table-auto">
           <thead>
             <tr>
               <th className="px-4 py-2 border">Categoría</th>

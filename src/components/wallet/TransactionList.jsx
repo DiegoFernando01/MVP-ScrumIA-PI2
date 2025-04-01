@@ -58,7 +58,7 @@ const TransactionList = ({
             className={`filter-toggle ${showFilters ? 'active' : ''}`}
             onClick={() => setShowFilters(!showFilters)}
           >
-            <span className="filter-icon">🔍</span>
+            <span className="filter-icon">{showFilters ? '✕' : '🔍'}</span>
             <span>{showFilters ? 'Ocultar filtros' : 'Mostrar filtros'}</span>
           </button>
         </div>
@@ -79,6 +79,7 @@ const TransactionList = ({
           setSearchText={filterProps.setSearchText}
           sortBy={filterProps.sortBy}
           setSortBy={filterProps.setSortBy}
+          resetAllFilters={filterProps.resetAllFilters}
         />
       )}
 
@@ -105,10 +106,10 @@ const TransactionList = ({
             }</p>
             {filterProps.hasActiveFilters && (
               <button 
-                className="btn btn-secondary" 
+                className="btn-filter btn-filter-primary" 
                 onClick={filterProps.resetAllFilters}
               >
-                Limpiar filtros
+                <span>🔄</span> Limpiar filtros
               </button>
             )}
           </div>

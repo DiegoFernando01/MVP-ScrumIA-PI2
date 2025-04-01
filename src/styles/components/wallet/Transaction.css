@@ -10,6 +10,7 @@
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+  animation: fadeIn 0.3s ease;
 }
 
 .transaction-header {
@@ -19,11 +20,12 @@
   flex-wrap: wrap;
   gap: 1rem;
   margin-bottom: 0.5rem;
+  padding: 0.75rem 0;
 }
 
 .transaction-summary {
   display: flex;
-  gap: 1rem;
+  gap: 0.75rem;
   flex-wrap: wrap;
 }
 
@@ -33,8 +35,16 @@
   gap: 0.5rem;
   background-color: #f9fafb;
   padding: 0.5rem 0.75rem;
-  border-radius: 6px;
+  border-radius: 8px;
   font-size: 0.9rem;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease;
+}
+
+.summary-item:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08);
 }
 
 .summary-label {
@@ -49,17 +59,27 @@
 
 .summary-value.income {
   color: #10b981;
+  background: linear-gradient(135deg, #10b981, #059669);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .summary-value.expense {
   color: #f43f5e;
+  background: linear-gradient(135deg, #f43f5e, #e11d48);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .transaction-list-container {
   overflow: hidden;
   background-color: #f9fafb;
   border-radius: 12px;
-  padding: 0.5rem;
+  padding: 0.75rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e5e7eb;
 }
 
 /* Estilos para TransactionItem */
@@ -67,10 +87,9 @@
   display: flex;
   align-items: center;
   padding: 1rem;
-  border-bottom: 1px solid #f0f0f0;
   transition: all 0.2s ease;
   border-radius: 8px;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.75rem;
   border: 1px solid transparent;
   background-color: white;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.02);
@@ -79,29 +98,29 @@
 .transaction-item:hover {
   background-color: #f9fafb;
   border-color: #e2e8f0;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
 }
 
 .transaction-icon {
   width: 40px;
   height: 40px;
-  border-radius: 10px;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   margin-right: 1rem;
-  font-size: 1.2rem;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  font-size: 1.1rem;
 }
 
 .transaction-icon.income {
-  background: linear-gradient(135deg, #10b981, #059669);
-  color: white;
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(5, 150, 105, 0.2));
+  color: #10b981;
 }
 
 .transaction-icon.expense {
-  background: linear-gradient(135deg, #f43f5e, #e11d48);
-  color: white;
+  background: linear-gradient(135deg, rgba(244, 63, 94, 0.1), rgba(225, 29, 72, 0.2));
+  color: #f43f5e;
 }
 
 .transaction-details {
@@ -110,9 +129,9 @@
 }
 
 .transaction-category {
-  font-size: 1.05rem;
   font-weight: 600;
-  color: #333;
+  font-size: 0.95rem;
+  color: #374151;
   margin: 0 0 0.25rem;
 }
 
@@ -131,6 +150,7 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  font-style: italic;
 }
 
 .transaction-amount {
@@ -164,9 +184,9 @@
 .action-btn {
   background: transparent;
   border: none;
-  width: 32px;
-  height: 32px;
-  border-radius: 6px;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -178,14 +198,17 @@
 .action-btn:hover {
   background-color: #f3f4f6;
   color: #4b5563;
+  transform: scale(1.05);
 }
 
 .action-btn.edit:hover {
   color: #3056d3;
+  background-color: rgba(48, 86, 211, 0.1);
 }
 
 .action-btn.delete:hover {
   color: #f43f5e;
+  background-color: rgba(244, 63, 94, 0.1);
 }
 
 .action-btn:focus {
@@ -232,40 +255,36 @@
 }
 
 /* Media queries para transacciones */
-@media (max-width: 576px) {
-  .transaction-item {
-    flex-wrap: wrap;
-    padding: 0.75rem;
-  }
-  
-  .transaction-icon {
-    width: 36px;
-    height: 36px;
-    font-size: 1rem;
-  }
-  
-  .transaction-category {
-    font-size: 1rem;
-  }
-  
-  .transaction-info {
+@media (max-width: 768px) {
+  .transaction-header {
     flex-direction: column;
     align-items: flex-start;
-    gap: 0.25rem;
   }
   
-  .transaction-date {
-    margin-right: 0;
+  .transaction-actions {
+    align-self: flex-end;
+  }
+  
+  .transaction-item {
+    flex-wrap: wrap;
   }
   
   .transaction-amount {
     margin-left: 0;
     margin-top: 0.5rem;
+    width: 100%;
+    text-align: right;
+  }
+}
+
+@media (max-width: 480px) {
+  .transaction-icon {
+    width: 32px;
+    height: 32px;
+    font-size: 0.9rem;
   }
   
-  .transaction-actions {
-    position: absolute;
-    top: 0.75rem;
-    right: 0.75rem;
+  .summary-item {
+    width: 100%;
   }
 }

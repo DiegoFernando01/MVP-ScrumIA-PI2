@@ -29,6 +29,7 @@ import "../styles/components/wallet/FilterPanel.css";
 import "../styles/components/wallet/Budget.css";
 import "../styles/components/wallet/Modal.css";
 import "../styles/components/wallet/Alert.css";
+import "../styles/components/wallet/Category.css";
 
 /**
  * Página principal de billetera
@@ -453,7 +454,7 @@ function Wallet() {
         <div className="sidebar-header">
           <div className="logo-container">
             <div className="app-logo">💰</div>
-            <span className="app-name">FinanzApp</span>
+            <span className="app-name">SmartWallet</span>
           </div>
           <button className="toggle-sidebar" onClick={toggleSidebar}>
             {sidebarCollapsed ? '→' : '←'}
