@@ -1,8 +1,5 @@
 import React from "react";
 
-/**
- * Selector de categorías con opción para añadir nuevas
- */
 const CategorySelector = ({
   formData,
   handleChange,
@@ -14,74 +11,108 @@ const CategorySelector = ({
   addNewCategory,
   errors,
 }) => {
-  const handleAddCategory = () => {
-    if (!newCategoryInput.trim()) return;
+  // Determinar qué categorías mostrar según el tipo de transacción
+  const categoriesForType =
+    formData.type === "expense"
+      ? categories.expense
+      : categories.income;
 
-    const success = addNewCategory(formData.type, newCategoryInput);
-    if (!success) {
-      alert("Esta categoría ya existe");
-      return;
+  // Manejar click en "Agregar categoría"
+  const handleAddCategoryClick = () => {
+    setShowNewCategoryInput(true);
+  };
+
+  // Manejar cambio en el input de nueva categoría
+  const handleNewCategoryChange = (e) => {
+    setNewCategoryInput(e.target.value);
+  };
+
+  // Manejar creación de nueva categoría
+  const handleCreateCategory = () => {
+    if (newCategoryInput.trim()) {
+      const success = addNewCategory(formData.type, newCategoryInput.trim());
+      if (success) {
+        setNewCategoryInput("");
+        setShowNewCategoryInput(false);
+      }
     }
+  };
 
-    // Limpiar y ocultar el input
+  // Manejar cancelación de creación de categoría
+  const handleCancelNewCategory = () => {
     setNewCategoryInput("");
     setShowNewCategoryInput(false);
   };
 
   return (
-    <div>
-      <label className="block mb-1 text-sm font-medium text-black">
-        Categoría *
+    <>
+      <label className="form-label">
+        Categoría <span className="required">*</span>
       </label>
-      <div className="flex flex-col gap-2">
-        <div className="flex gap-2">
+      
+      {!showNewCategoryInput ? (
+        <div className="category-selector">
           <select
             name="category"
             value={formData.category}
             onChange={handleChange}
-            className="w-full px-3 py-2 border rounded-l text-gray-800"
+            className="form-select"
           >
             <option value="">Seleccionar categoría</option>
-            {categories[formData.type]?.map((cat) => (
-              <option key={cat} value={cat}>
-                {cat}
+            {categoriesForType.map((category, index) => (
+              <option key={index} value={category}>
+                {category}
               </option>
             ))}
           </select>
+          
           <button
             type="button"
-            onClick={() => setShowNewCategoryInput(!showNewCategoryInput)}
-            className="bg-gray-100 hover:bg-gray-200 px-3 py-2 border-y border-r rounded-r"
-            title="Agregar nueva categoría"
+            onClick={handleAddCategoryClick}
+            className="btn-add-category"
           >
-            {showNewCategoryInput ? "✕" : "+"}
+            <span className="add-icon">+</span>
+            <span>Nueva</span>
           </button>
         </div>
-
-        {/* Input para nueva categoría */}
-        {showNewCategoryInput && (
-          <div className="flex mt-1">
+      ) : (
+        <div className="new-category-input">
+          <div className="input-with-icon">
+            <span className="input-icon">🏷️</span>
             <input
               type="text"
               value={newCategoryInput}
-              onChange={(e) => setNewCategoryInput(e.target.value)}
-              placeholder="Nombre de nueva categoría"
-              className="flex-grow px-3 py-2 border rounded-l text-gray-800"
+              onChange={handleNewCategoryChange}
+              placeholder="Nombre de la nueva categoría"
+              className="form-input with-icon"
+              autoFocus
             />
+          </div>
+          
+          <div className="new-category-actions">
             <button
               type="button"
-              onClick={handleAddCategory}
-              className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded-r"
+              onClick={handleCreateCategory}
+              className="btn btn-sm btn-primary"
+              disabled={!newCategoryInput.trim()}
             >
-              Agregar
+              Guardar
+            </button>
+            <button
+              type="button"
+              onClick={handleCancelNewCategory}
+              className="btn btn-sm btn-secondary"
+            >
+              Cancelar
             </button>
           </div>
-        )}
-        {errors?.category && (
-          <p className="text-red-500 text-xs">{errors.category}</p>
-        )}
-      </div>
-    </div>
+        </div>
+      )}
+      
+      {errors.category && (
+        <p className="form-error">{errors.category}</p>
+      )}
+    </>
   );
 };
 

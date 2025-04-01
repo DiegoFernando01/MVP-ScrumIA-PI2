@@ -1,85 +1,119 @@
-import React from "react";
+import React, { useState } from "react";
 import FilterPanel from "./FilterPanel";
 import TransactionItem from "./TransactionItem";
-import AlertDisplay from "./AlertDisplay";
 
-/**
- * Lista de transacciones con filtros
- */
 const TransactionList = ({
   transactions,
   filterProps,
   uniqueCategories,
-  regenerateTestData,
   calculateBudgetUsage,
   alertProps,
   onEditTransaction,
   onDeleteTransaction,
 }) => {
-  const { filteredTransactions, hasActiveFilters, ...filters } = filterProps;
+  const [showFilters, setShowFilters] = useState(false);
+
+  // Calcular totales para mostrar
+  const totalIncome = transactions
+    .filter((t) => t.type === "income")
+    .reduce((acc, t) => acc + parseFloat(t.amount), 0);
+
+  const totalExpense = transactions
+    .filter((t) => t.type === "expense")
+    .reduce((acc, t) => acc + parseFloat(t.amount), 0);
 
   return (
-    <div>
-      {/* Mostrar alertas si hay */}
-      {alertProps && alertProps.activeAlerts.length > 0 && (
-        <AlertDisplay
-          activeAlerts={alertProps.activeAlerts}
-          markAlertAsRead={alertProps.markAlertAsRead}
-          dismissAlert={alertProps.dismissAlert}
-        />
-      )}
-
-      <div className="mb-4">
-        {/* Encabezado y botón de prueba */}
-        <div className="flex justify-between items-center mb-2">
-          <h2 className="text-lg font-semibold">Transacciones</h2>
-          <button
-            onClick={regenerateTestData}
-            className="text-xs bg-gray-200 hover:bg-gray-300 px-2 py-1 rounded text-gray-700"
-          >
-            Regenerar datos de prueba
-          </button>
+    <div className="transaction-container">
+      <div className="transaction-header">
+        <div className="transaction-summary">
+          <div className="summary-item">
+            <span className="summary-label">Filtrados:</span>
+            <span className="summary-value">{filterProps.filteredTransactions.length} de {transactions.length}</span>
+          </div>
+          
+          {filterProps.hasActiveFilters && (
+            <>
+              <div className="summary-item">
+                <span className="summary-label">Ingresos:</span>
+                <span className="summary-value income">$ {filterProps.filteredTransactions
+                  .filter(t => t.type === "income")
+                  .reduce((acc, t) => acc + parseFloat(t.amount), 0)
+                  .toFixed(2)}
+                </span>
+              </div>
+              <div className="summary-item">
+                <span className="summary-label">Gastos:</span>
+                <span className="summary-value expense">$ {filterProps.filteredTransactions
+                  .filter(t => t.type === "expense")
+                  .reduce((acc, t) => acc + parseFloat(t.amount), 0)
+                  .toFixed(2)}
+                </span>
+              </div>
+            </>
+          )}
         </div>
-
-        {/* Panel de filtros */}
-        <FilterPanel
-          {...filters}
-          uniqueCategories={uniqueCategories}
-          hasActiveFilters={hasActiveFilters}
-        />
-
-        {/* Contador de transacciones */}
-        <div className="mt-3 text-sm text-gray-600">
-          Mostrando {filteredTransactions.length} de {transactions.length}{" "}
-          transacciones
-          {hasActiveFilters && " (con filtros aplicados)"}
+        
+        <div className="transaction-actions">
+          <button 
+            className={`filter-toggle ${showFilters ? 'active' : ''}`}
+            onClick={() => setShowFilters(!showFilters)}
+          >
+            <span className="filter-icon">🔍</span>
+            <span>{showFilters ? 'Ocultar filtros' : 'Mostrar filtros'}</span>
+          </button>
         </div>
       </div>
 
-      {/* Lista de transacciones */}
-      {filteredTransactions.length === 0 ? (
-        <p className="text-gray-500">
-          {transactions.length === 0
-            ? "Aún no hay transacciones registradas."
-            : "No hay transacciones que coincidan con los filtros seleccionados."}
-        </p>
-      ) : (
-        <ul className="space-y-2">
-          {filteredTransactions.map((transaction) => (
-            <TransactionItem
-              key={transaction.id}
-              transaction={transaction}
-              budgetUsage={
-                transaction.type === "expense" && transaction.category
-                  ? calculateBudgetUsage(transaction.category, transactions)
-                  : null
-              }
-              onEdit={onEditTransaction}
-              onDelete={onDeleteTransaction}
-            />
-          ))}
-        </ul>
+      {showFilters && (
+        <FilterPanel
+          categoryFilter={filterProps.categoryFilter}
+          setCategoryFilter={filterProps.setCategoryFilter}
+          typeFilter={filterProps.typeFilter}
+          setTypeFilter={filterProps.setTypeFilter}
+          dateFilter={filterProps.dateFilter}
+          handleDateFilterChange={filterProps.handleDateFilterChange}
+          clearDateFilter={filterProps.clearDateFilter}
+          uniqueCategories={uniqueCategories}
+          hasActiveFilters={filterProps.hasActiveFilters}
+          searchText={filterProps.searchText}
+          setSearchText={filterProps.setSearchText}
+          sortBy={filterProps.sortBy}
+          setSortBy={filterProps.setSortBy}
+        />
       )}
+
+      <div className="transaction-list-container">
+        {filterProps.filteredTransactions.length > 0 ? (
+          <div className="transaction-list">
+            {filterProps.filteredTransactions.map((transaction) => (
+              <TransactionItem
+                key={transaction.id}
+                transaction={transaction}
+                calculateBudgetUsage={calculateBudgetUsage}
+                onEdit={() => onEditTransaction(transaction)}
+                onDelete={() => onDeleteTransaction(transaction.id)}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="empty-state">
+            <div className="empty-icon">📋</div>
+            <h3>No hay transacciones</h3>
+            <p>{filterProps.hasActiveFilters
+              ? "No se encontraron transacciones que coincidan con los filtros aplicados."
+              : "Añade tu primera transacción usando el formulario superior."
+            }</p>
+            {filterProps.hasActiveFilters && (
+              <button 
+                className="btn btn-secondary" 
+                onClick={filterProps.resetAllFilters}
+              >
+                Limpiar filtros
+              </button>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 };

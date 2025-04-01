@@ -1,0 +1,137 @@
+/* Estilos para los componentes de presupuesto */
+
+/* Componentes de presupuestos */
+.budget-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+  padding: 1.5rem;
+}
+
+.budget-card:hover {
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+}
+
+.budget-card::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 20%;
+  height: 6px;
+  border-radius: 3px 0 0 0;
+  background: linear-gradient(90deg, transparent, rgba(48, 86, 211, 0.2));
+}
+
+.budget-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.budget-title {
+  font-weight: 600;
+  font-size: 1.05rem;
+  color: #333;
+  margin: 0;
+}
+
+.budget-amount {
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: #333;
+}
+
+.budget-progress {
+  height: 10px;
+  background-color: #f0f0f0;
+  border-radius: 5px;
+  overflow: hidden;
+  margin-bottom: 0.5rem;
+}
+
+.budget-bar {
+  height: 100%;
+  border-radius: 5px;
+  transition: width 0.5s ease;
+}
+
+.budget-stats {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.85rem;
+}
+
+.budget-spent {
+  color: #6b7280;
+}
+
+.budget-status {
+  font-weight: 600;
+}
+
+.status-safe {
+  color: #10b981;
+}
+
+.status-warning {
+  color: #f59e0b;
+}
+
+.status-danger {
+  color: #f43f5e;
+}
+
+/* Indicador de uso de presupuesto en transacciones */
+.usage-indicator {
+  margin-top: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  max-width: 250px;
+}
+
+.usage-bar {
+  height: 6px;
+  background-color: #f0f0f0;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.usage-progress {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+.usage-progress.status-safe {
+  background: linear-gradient(135deg, #10b981, #059669);
+}
+
+.usage-progress.status-warning {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+}
+
+.usage-progress.status-danger {
+  background: linear-gradient(135deg, #f43f5e, #e11d48);
+}
+
+.usage-text {
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.usage-text.status-safe {
+  color: #10b981;
+}
+
+.usage-text.status-warning {
+  color: #f59e0b;
+}
+
+.usage-text.status-danger {
+  color: #f43f5e;
+}

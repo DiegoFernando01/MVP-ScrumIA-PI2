@@ -18,6 +18,7 @@ const FilterPanel = ({
   setSearchText,
   sortBy,
   setSortBy,
+  resetAllFilters,
 }) => {
   // Función de ayuda para formatear los mensajes de filtro
   const getFilterDescription = () => {
@@ -43,92 +44,63 @@ const FilterPanel = ({
   };
 
   return (
-    <div>
+    <div className="filters-container">
+      <h4 className="filter-heading">
+        <span className="filter-heading-icon">🔍</span>
+        Filtros y Búsqueda
+      </h4>
+      
       {/* Búsqueda de texto */}
-      <div className="mb-3">
-        <div className="relative">
+      <div className="form-group">
+        <label className="filter-label">Buscar en transacciones</label>
+        <div className="input-with-icon">
+          <span className="input-icon">🔍</span>
           <input
             type="text"
             value={searchText}
             onChange={(e) => setSearchText(e.target.value)}
-            placeholder="Buscar en transacciones..."
-            className="w-full px-3 py-2 pl-10 border rounded text-gray-800 bg-white"
+            placeholder="Busca por descripción, categoría o monto..."
+            className="filter-input with-icon"
           />
-          <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-            <svg
-              className="w-4 h-4 text-gray-500"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-              />
-            </svg>
-          </div>
-          {searchText && (
-            <button
-              onClick={() => setSearchText("")}
-              className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 hover:text-gray-700"
-            >
-              <svg
-                className="w-4 h-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              </svg>
-            </button>
-          )}
         </div>
+        {searchText && (
+          <button
+            onClick={() => setSearchText("")}
+            className="btn-filter btn-filter-secondary"
+          >
+            Limpiar búsqueda
+          </button>
+        )}
       </div>
 
       {/* Selector de orden */}
-      <div className="mb-3 bg-gray-100 p-2 rounded">
-        <div className="flex items-center">
-          <label className="text-sm mr-2 font-medium text-black">
-            Ordenar por:
-          </label>
-          <select
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value)}
-            className="flex-grow px-2 py-1 border rounded text-sm bg-white text-gray-800"
-          >
-            <option value="date-desc">Fecha (más reciente primero)</option>
-            <option value="date-asc">Fecha (más antiguo primero)</option>
-            <option value="amount-desc">Monto (mayor a menor)</option>
-            <option value="amount-asc">Monto (menor a mayor)</option>
-            <option value="category">Categoría (A-Z)</option>
-          </select>
-        </div>
+      <div className="form-group">
+        <label className="filter-label">Ordenar por</label>
+        <select
+          value={sortBy}
+          onChange={(e) => setSortBy(e.target.value)}
+          className="filter-select"
+        >
+          <option value="date-desc">Fecha (más reciente primero)</option>
+          <option value="date-asc">Fecha (más antiguo primero)</option>
+          <option value="amount-desc">Monto (mayor a menor)</option>
+          <option value="amount-asc">Monto (menor a mayor)</option>
+          <option value="category">Categoría (A-Z)</option>
+        </select>
       </div>
 
-      {/* Filtros por categoría y tipo */}
-      <div className="flex flex-col sm:flex-row gap-2 bg-gray-100 p-2 rounded">
-        {/* Category filter dropdown */}
-        <div className="flex items-center">
-          <label className="text-sm mr-2 font-medium text-black">
-            Categoría:
-          </label>
+      <div className="filters-grid">
+        {/* Filtro por categoría */}
+        <div className="filter-group">
+          <label className="filter-label">Categoría</label>
           <select
             value={categoryFilter}
             onChange={(e) => setCategoryFilter(e.target.value)}
-            className={`px-2 py-1 border rounded text-sm flex-grow bg-white ${
-              categoryFilter !== "all"
-                ? "border-blue-500 text-blue-800"
-                : "text-gray-800"
+            className={`filter-select ${
+              categoryFilter !== "all" ? "active-filter" : ""
             }`}
           >
-            <option value="all">Todas</option>
+            <option value="all">Todas las categorías</option>
             {uniqueCategories.map((category) => (
               <option key={category} value={category}>
                 {category}
@@ -137,67 +109,76 @@ const FilterPanel = ({
           </select>
         </div>
 
-        {/* Type filter dropdown */}
-        <div className="flex items-center">
-          <label className="text-sm mr-2 font-medium text-black">Tipo:</label>
+        {/* Filtro por tipo */}
+        <div className="filter-group">
+          <label className="filter-label">Tipo de transacción</label>
           <select
             value={typeFilter}
             onChange={(e) => setTypeFilter(e.target.value)}
-            className={`px-2 py-1 border rounded text-sm flex-grow bg-white ${
-              typeFilter !== "all"
-                ? "border-blue-500 text-blue-800"
-                : "text-gray-800"
+            className={`filter-select ${
+              typeFilter !== "all" ? "active-filter" : ""
             }`}
           >
-            <option value="all">Todos</option>
+            <option value="all">Todos los tipos</option>
             <option value="income">Ingresos</option>
             <option value="expense">Gastos</option>
           </select>
         </div>
+
+        {/* Filtro por fecha: inicio */}
+        <div className="filter-group">
+          <label className="filter-label">Fecha desde</label>
+          <input
+            type="date"
+            name="startDate"
+            value={dateFilter.startDate}
+            onChange={handleDateFilterChange}
+            className={`filter-input ${
+              dateFilter.startDate ? "active-filter" : ""
+            }`}
+          />
+        </div>
+
+        {/* Filtro por fecha: fin */}
+        <div className="filter-group">
+          <label className="filter-label">Fecha hasta</label>
+          <input
+            type="date"
+            name="endDate"
+            value={dateFilter.endDate}
+            onChange={handleDateFilterChange}
+            className={`filter-input ${
+              dateFilter.endDate ? "active-filter" : ""
+            }`}
+          />
+        </div>
       </div>
 
-      {/* Filtros por fecha */}
-      <div className="mt-2 bg-gray-100 p-2 rounded">
-        <div className="text-sm font-medium text-black mb-1">
-          Filtrar por fecha:
-        </div>
-        <div className="flex flex-col sm:flex-row gap-2">
-          <div className="flex flex-1 items-center">
-            <label className="text-sm mr-2 text-black">Desde:</label>
-            <input
-              type="date"
-              name="startDate"
-              value={dateFilter.startDate}
-              onChange={handleDateFilterChange}
-              className="w-full px-2 py-1 border rounded text-gray-800 text-sm bg-white"
-            />
-          </div>
-          <div className="flex flex-1 items-center">
-            <label className="text-sm mr-2 text-black">Hasta:</label>
-            <input
-              type="date"
-              name="endDate"
-              value={dateFilter.endDate}
-              onChange={handleDateFilterChange}
-              className="w-full px-2 py-1 border rounded text-gray-800 text-sm bg-white"
-            />
-          </div>
-          {(dateFilter.startDate || dateFilter.endDate) && (
-            <button
-              onClick={clearDateFilter}
-              className="text-sm text-blue-600 hover:text-blue-800 bg-white px-2 py-1 rounded border"
-            >
-              Limpiar fechas
-            </button>
-          )}
-        </div>
+      {/* Botones de acción para filtros */}
+      <div className="filter-actions">
+        {(dateFilter.startDate || dateFilter.endDate) && (
+          <button
+            onClick={clearDateFilter}
+            className="btn-filter btn-filter-secondary"
+          >
+            Limpiar filtro de fechas
+          </button>
+        )}
+        
+        {hasActiveFilters && (
+          <button
+            onClick={resetAllFilters}
+            className="btn-filter btn-filter-primary"
+          >
+            Restablecer todos los filtros
+          </button>
+        )}
       </div>
 
       {/* Indicador de filtros activos */}
       {hasActiveFilters && (
-        <div className="mt-2 text-sm text-blue-600">
-          Filtrando por: {getFilterDescription()}
-          {searchText && <span> • Búsqueda: "{searchText}"</span>}
+        <div className="active-filters-indicator">
+          <strong>Filtros activos:</strong> {getFilterDescription()}
         </div>
       )}
     </div>

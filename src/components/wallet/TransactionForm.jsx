@@ -2,7 +2,7 @@ import React from "react";
 import CategorySelector from "./CategorySelector";
 
 /**
- * Formulario para agregar transacciones
+ * Formulario para agregar transacciones con estilos mejorados
  */
 const TransactionForm = ({
   formData,
@@ -18,105 +18,116 @@ const TransactionForm = ({
   addNewCategory,
 }) => {
   return (
-    <div>
-      
-      <form
-        onSubmit={handleSubmit}
-        className="space-y-4 bg-white p-4 rounded shadow"
-      >
-        <h2 className="text-xl text-black font-semibold text-center mb-4">
-        Agregar Transacción
-        </h2>
-        {/* Campo: Monto */}
-        <div>
-          <label className="block mb-1 text-sm font-medium text-black">
-            Monto *
-          </label>
-          <input
-            type="number"
-            name="amount"
-            value={formData.amount}
-            onChange={handleChange}
-            className="w-full px-3 py-2 border rounded text-gray-800"
-            placeholder="Ej: 100.00"
-          />
-          {errors.amount && (
-            <p className="text-red-500 text-xs">{errors.amount}</p>
-          )}
+    <div className="form-container">
+      <form onSubmit={handleSubmit} className="transaction-form">
+        <div className="form-grid">
+          {/* Campo: Monto */}
+          <div className="form-group">
+            <label className="form-label">
+              Monto <span className="required">*</span>
+            </label>
+            <div className="input-with-icon">
+              <span className="input-icon">$</span>
+              <input
+                type="number"
+                name="amount"
+                value={formData.amount}
+                onChange={handleChange}
+                className="form-input with-icon"
+                placeholder="0.00"
+              />
+            </div>
+            {errors.amount && (
+              <p className="form-error">{errors.amount}</p>
+            )}
+          </div>
+
+          {/* Campo: Tipo */}
+          <div className="form-group">
+            <label className="form-label">
+              Tipo <span className="required">*</span>
+            </label>
+            <div className="toggle-container">
+              <button 
+                type="button"
+                className={`toggle-button ${formData.type === 'income' ? 'active income' : ''}`}
+                onClick={() => handleChange({ target: { name: 'type', value: 'income' } })}
+              >
+                <span className="toggle-icon">💰</span>
+                <span>Ingreso</span>
+              </button>
+              <button 
+                type="button"
+                className={`toggle-button ${formData.type === 'expense' ? 'active expense' : ''}`}
+                onClick={() => handleChange({ target: { name: 'type', value: 'expense' } })}
+              >
+                <span className="toggle-icon">💸</span>
+                <span>Gasto</span>
+              </button>
+            </div>
+          </div>
         </div>
 
-        {/* Campo: Tipo */}
-        <div>
-          <label className="block mb-1 text-sm font-medium text-black">
-            Tipo *
-          </label>
-          <select
-            name="type"
-            value={formData.type}
-            onChange={handleChange}
-            className="w-full px-3 py-2 border rounded text-gray-800"
-          >
-            <option value="income">Ingreso</option>
-            <option value="expense">Gasto</option>
-          </select>
-        </div>
+        <div className="form-grid">
+          {/* Campo: Fecha */}
+          <div className="form-group">
+            <label className="form-label">
+              Fecha <span className="required">*</span>
+            </label>
+            <input
+              type="date"
+              name="date"
+              value={formData.date}
+              onChange={handleChange}
+              className="form-input"
+            />
+            {errors.date && <p className="form-error">{errors.date}</p>}
+          </div>
 
-        {/* Campo: Fecha */}
-        <div>
-          <label className="block mb-1 text-sm font-medium text-black">
-            Fecha *
-          </label>
-          <input
-            type="date"
-            name="date"
-            value={formData.date}
-            onChange={handleChange}
-            className="w-full px-3 py-2 border rounded text-gray-800"
-          />
-          {errors.date && <p className="text-red-500 text-xs">{errors.date}</p>}
-        </div>
-
-        {/* Campo: Descripción */}
-        <div>
-          <label className="block mb-1 text-sm font-medium text-black">
-            Descripción
-          </label>
-          <input
-            type="text"
-            name="description"
-            value={formData.description}
-            onChange={handleChange}
-            className="w-full px-3 py-2 border rounded text-gray-800"
-            placeholder="Ej: Compra supermercado"
-          />
+          {/* Campo: Descripción */}
+          <div className="form-group">
+            <label className="form-label">Descripción</label>
+            <input
+              type="text"
+              name="description"
+              value={formData.description}
+              onChange={handleChange}
+              className="form-input"
+              placeholder="Ej: Compra supermercado"
+            />
+          </div>
         </div>
 
         {/* Campo: Categoría */}
-        <CategorySelector
-          formData={formData}
-          handleChange={handleChange}
-          categories={categories}
-          newCategoryInput={newCategoryInput}
-          setNewCategoryInput={setNewCategoryInput}
-          showNewCategoryInput={showNewCategoryInput}
-          setShowNewCategoryInput={setShowNewCategoryInput}
-          addNewCategory={addNewCategory}
-          errors={errors}
-        />
+        <div className="form-group category-group">
+          <CategorySelector
+            formData={formData}
+            handleChange={handleChange}
+            categories={categories}
+            newCategoryInput={newCategoryInput}
+            setNewCategoryInput={setNewCategoryInput}
+            showNewCategoryInput={showNewCategoryInput}
+            setShowNewCategoryInput={setShowNewCategoryInput}
+            addNewCategory={addNewCategory}
+            errors={errors}
+          />
+        </div>
 
         {/* Botones de acción */}
-        <div className="flex gap-2">
+        <div className="form-actions">
           <button
             type="submit"
-            className="flex-1 bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition"
+            className="btn btn-primary"
           >
+            <span className="btn-icon">➕</span>
             Agregar
           </button>
           <button
             type="button"
             onClick={handleClear}
-            className="flex-1 bg-gray-500 text-white py-2 rounded hover:bg-gray-600 transition"
+            className="btn btn-secondary"
           >
+            <span className="btn-icon">🗑️</span>
             Limpiar
           </button>
         </div>

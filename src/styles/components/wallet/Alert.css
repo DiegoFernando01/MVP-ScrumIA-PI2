@@ -1,0 +1,260 @@
+/* Estilos para alertas y recordatorios */
+
+/* Componente AlertDisplay */
+.alert-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  width: 350px;
+  max-width: 90vw;
+  z-index: 1100;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.alert-item {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  padding: 1rem;
+  display: flex;
+  align-items: flex-start;
+  overflow: hidden;
+  position: relative;
+  animation: slideInRight 0.3s ease, fadeOut 0.3s ease 2.7s;
+}
+
+.alert-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 0.75rem;
+  flex-shrink: 0;
+  font-size: 1.25rem;
+}
+
+.alert-icon.success {
+  background-color: rgba(16, 185, 129, 0.1);
+  color: #10b981;
+}
+
+.alert-icon.error {
+  background-color: rgba(244, 63, 94, 0.1);
+  color: #f43f5e;
+}
+
+.alert-icon.warning {
+  background-color: rgba(245, 158, 11, 0.1);
+  color: #f59e0b;
+}
+
+.alert-icon.info {
+  background-color: rgba(48, 86, 211, 0.1);
+  color: #3056d3;
+}
+
+.alert-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.alert-title {
+  font-weight: 600;
+  margin: 0 0 0.25rem;
+}
+
+.alert-message {
+  font-size: 0.9rem;
+  color: #6b7280;
+  margin: 0;
+}
+
+.alert-close {
+  background: transparent;
+  border: none;
+  color: #9ca3af;
+  cursor: pointer;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  font-size: 1.1rem;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.alert-close:hover {
+  background-color: #f3f4f6;
+  color: #6b7280;
+}
+
+.alert-progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+}
+
+.alert-progress.success {
+  background-color: #10b981;
+}
+
+.alert-progress.error {
+  background-color: #f43f5e;
+}
+
+.alert-progress.warning {
+  background-color: #f59e0b;
+}
+
+.alert-progress.info {
+  background-color: #3056d3;
+}
+
+/* Componentes de recordatorios */
+.reminder-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.reminder-item {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.03);
+  padding: 1rem;
+  display: flex;
+  align-items: center;
+  transition: all 0.2s ease;
+  border: 1px solid #f0f0f0;
+}
+
+.reminder-item:hover {
+  border-color: #e2e8f0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.reminder-icon {
+  width: 40px;
+  height: 40px;
+  background-color: rgba(48, 86, 211, 0.1);
+  color: #3056d3;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 1rem;
+  font-size: 1.2rem;
+}
+
+.reminder-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.reminder-title {
+  font-weight: 600;
+  font-size: 1rem;
+  color: #333;
+  margin: 0 0 0.25rem;
+}
+
+.reminder-details {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  font-size: 0.85rem;
+  color: #6b7280;
+}
+
+.reminder-detail {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.reminder-detail-icon {
+  font-size: 0.9rem;
+}
+
+.reminder-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-left: 1rem;
+}
+
+.reminder-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.reminder-badge.upcoming {
+  background-color: rgba(48, 86, 211, 0.1);
+  color: #3056d3;
+}
+
+.reminder-badge.today {
+  background-color: rgba(245, 158, 11, 0.1);
+  color: #f59e0b;
+}
+
+.reminder-badge.overdue {
+  background-color: rgba(244, 63, 94, 0.1);
+  color: #f43f5e;
+}
+
+.reminder-form {
+  margin-top: 1.5rem;
+}
+
+.reminder-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@media (max-width: 576px) {
+  .alert-container {
+    width: calc(100% - 40px);
+    top: 10px;
+    right: 10px;
+  }
+  
+  .reminder-form-grid {
+    grid-template-columns: 1fr;
+  }
+}
