@@ -168,12 +168,29 @@
   color: #4b5563; /* Asegurando que el color del texto sea oscuro */
 }
 
+/* Corrigiendo estilos de autocompletado */
+.input-group input:-webkit-autofill,
+.input-group input:-webkit-autofill:hover, 
+.input-group input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0px 1000px #f9fafb inset;
+  -webkit-text-fill-color: #4b5563;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
 .input-group input:focus {
   border-color: #5c27c3;
   box-shadow: 0 0 0 3px rgba(92, 39, 195, 0.15);
   background-color: white;
   outline: none;
   color: #1a202c; /* Color de texto más oscuro al enfocar */
+}
+
+/* Estilos específicos para input enfocado con autocompletado */
+.input-group input:focus:-webkit-autofill,
+.input-group input:focus:-webkit-autofill:hover, 
+.input-group input:focus:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0px 1000px white inset;
+  -webkit-text-fill-color: #1a202c;
 }
 
 .input-group input::placeholder {
