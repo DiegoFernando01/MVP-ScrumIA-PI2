@@ -1,116 +1,391 @@
-.register-container {
+/* src/styles/Register.css */
+/* Estilos modernos para la página de registro */
+.register-page {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100vh;
-  background-color: #f4f4f9;
-  padding: 20px;
-  box-sizing: border-box;
+  min-height: 100vh;
+  width: 100vw; /* Asegura que ocupe todo el ancho de la ventana */
+  overflow: hidden;
+  position: absolute; /* Posicionamiento absoluto para ocupar toda la pantalla */
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
 }
 
-/* Título */
-.register-container h2 {
+/* Panel con imagen */
+.register-image-panel {
+  flex: 1;
+  background-image: url('https://images.unsplash.com/photo-1633158829585-23ba8f7c8caf?q=80&w=2070&auto=format&fit=crop');
+  background-size: cover;
+  background-position: center;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  text-align: center;
+}
+
+.register-image-panel .overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(48, 86, 211, 0.8), rgba(92, 39, 195, 0.8));
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.register-image-panel .welcome-text {
+  position: relative;
+  z-index: 1;
+  max-width: 500px;
+  margin: 0 auto;
+  animation: fadeSlideUp 1s ease-out forwards;
+}
+
+.register-image-panel .welcome-text h1 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+.register-image-panel .welcome-text p {
+  font-size: 1.2rem;
+  margin-bottom: 2rem;
+  opacity: 0.9;
+  line-height: 1.6;
+}
+
+/* Panel con formulario */
+.register-form-panel {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f7f9fc;
+  padding: 2rem;
+}
+
+.register-form-container {
+  width: 100%;
+  max-width: 450px;
+  padding: 2.5rem;
+  background-color: white;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+  opacity: 0;
+  transform: translateY(20px);
+  transition: all 0.6s ease;
+}
+
+.register-form-container.animate {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.register-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.register-header .logo-container {
+  margin-bottom: 1.5rem;
+}
+
+.register-header .logo {
+  width: 70px;
+  height: 70px;
+  margin: 0 auto;
+  background: linear-gradient(135deg, #3056d3, #5c27c3);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  box-shadow: 0 5px 15px rgba(92, 39, 195, 0.3);
+}
+
+.register-header .logo-icon {
+  font-size: 30px;
+}
+
+.register-header h2 {
+  font-size: 1.8rem;
+  font-weight: 700;
   color: #333;
-  font-size: 2rem;
-  margin-bottom: 20px;
+  margin-bottom: 0.5rem;
+}
+
+.register-subtitle {
+  color: #6b7280;
+  font-size: 0.95rem;
+  margin-bottom: 1rem;
 }
 
 /* Estilos del formulario */
-form {
-  background-color: white;
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+.register-form {
+  margin-bottom: 1.5rem;
+}
+
+.register-form .form-group {
+  margin-bottom: 1.5rem;
+}
+
+.register-form .form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: #4b5563;
+}
+
+.register-form .input-group {
+  position: relative;
+}
+
+.register-form .input-icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #a0aec0;
+  font-size: 18px;
+}
+
+.register-form .input-group input {
   width: 100%;
-  max-width: 400px;
+  padding: 12px 12px 12px 45px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 1rem;
+  background-color: #f9fafb;
+  transition: all 0.3s ease;
+  color: #4b5563; /* Asegurando que el color del texto sea oscuro */
+}
+
+.register-form .input-group input:focus {
+  border-color: #5c27c3;
+  box-shadow: 0 0 0 3px rgba(92, 39, 195, 0.15);
+  background-color: white;
+  outline: none;
+  color: #1a202c;
+}
+
+.register-form .input-group input::placeholder {
+  color: #cbd5e0;
+}
+
+.register-form .error-message {
+  padding: 0.75rem;
+  margin-bottom: 1rem;
+  background-color: #fee2e2;
+  border-radius: 8px;
+  border-left: 4px solid #ef4444;
+}
+
+.register-form .error-message p {
+  color: #b91c1c;
+  font-size: 0.875rem;
+  margin: 0;
+}
+
+/* Botones del formulario */
+.button-group {
   display: flex;
   flex-direction: column;
+  gap: 12px;
+  margin-top: 1.5rem;
 }
 
-form div {
-  margin-bottom: 15px;
-}
-
-form input {
+.register-button {
   width: 100%;
-  padding: 10px;
-  margin-top: 5px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  font-size: 1rem;
-}
-
-form input:focus {
-  border-color: #007BFF;
-  outline: none;
-}
-
-/* Estilo para los botones de Registro y Login */
-.form-buttons {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 20px;
-  width: 100%;
-}
-
-form button {
-  background-color: #007BFF;
+  padding: 0.75rem 1rem;
+  background: linear-gradient(135deg, #3056d3, #5c27c3);
   color: white;
-  padding: 12px;
   border: none;
-  border-radius: 4px;
+  border-radius: 8px;
   font-size: 1rem;
+  font-weight: 500;
   cursor: pointer;
-  transition: background-color 0.3s;
-  width: 48%; /* Los botones ocuparán un 48% cada uno del ancho disponible */
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(92, 39, 195, 0.3);
 }
 
-form button:hover {
-  background-color: #0056b3;
+.register-button:hover {
+  background: linear-gradient(135deg, #274ab8, #4f21a6);
+  box-shadow: 0 6px 18px rgba(92, 39, 195, 0.4);
+  transform: translateY(-2px);
 }
 
-/* Mensajes de éxito y error */
-p {
-  text-align: center;
+.register-button:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(92, 39, 195, 0.3), 0 4px 15px rgba(92, 39, 195, 0.3);
+}
+
+.button-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
+.button-icon {
+  margin-left: 8px;
+  font-size: 18px;
+  transition: transform 0.3s ease;
+}
+
+.register-button:hover .button-icon {
+  transform: translateX(4px);
+}
+
+.login-redirect-button {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background-color: transparent;
+  color: #5c27c3;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
   font-size: 1rem;
-  margin-top: 10px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
 }
 
-p.error {
-  color: red;
-  font-weight: bold;
+.login-redirect-button:hover {
+  background-color: #f9fafb;
+  border-color: #5c27c3;
 }
 
-p.success {
-  color: green;
-  font-weight: bold;
+/* Contenedor de éxito */
+.success-container {
+  text-align: center;
+  padding: 1rem;
+  animation: fadeIn 0.5s ease-out forwards;
 }
 
-/* Estilos responsivos */
-@media (max-width: 768px) {
-  .register-container {
-    padding: 10px;
-  }
+.success-icon {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 1.5rem;
+  background: linear-gradient(135deg, #34d399, #10b981);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  box-shadow: 0 5px 15px rgba(16, 185, 129, 0.3);
+}
 
-  form {
-    padding: 15px;
-  }
+.check-icon {
+  width: 40px;
+  height: 40px;
+}
 
-  form input {
-    font-size: 0.9rem;
-  }
+.success-container h3 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #10b981;
+  margin-bottom: 0.5rem;
+}
 
-  form button {
-    font-size: 0.9rem;
-  }
+.success-container p {
+  color: #6b7280;
+  margin-bottom: 1.5rem;
+}
 
-  .form-buttons {
+/* Animaciones */
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeSlideUp {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Estilos responsive */
+@media (max-width: 992px) {
+  .register-page {
     flex-direction: column;
   }
+  
+  .register-image-panel, .register-form-panel {
+    flex: none;
+  }
+  
+  .register-image-panel {
+    height: 250px;
+  }
+  
+  .register-image-panel .welcome-text h1 {
+    font-size: 2rem;
+  }
+  
+  .register-image-panel .welcome-text p {
+    font-size: 1rem;
+    margin-bottom: 1rem;
+  }
+  
+  .register-form-container {
+    padding: 2rem;
+    max-width: 400px;
+    margin: -50px auto 0;
+    position: relative;
+    z-index: 2;
+  }
+}
 
-  form button {
-    width: 100%; /* En pantallas más pequeñas, los botones ocuparán todo el ancho */
-    margin-bottom: 10px;
+@media (max-width: 480px) {
+  .register-form-panel {
+    padding: 1rem;
+  }
+  
+  .register-form-container {
+    padding: 1.5rem;
+    margin-top: -40px;
+  }
+  
+  .register-header .logo {
+    width: 60px;
+    height: 60px;
+  }
+  
+  .register-header h2 {
+    font-size: 1.5rem;
+  }
+  
+  .register-image-panel .welcome-text h1 {
+    font-size: 1.75rem;
+  }
+  
+  .register-form .input-group input {
+    padding: 10px 10px 10px 40px;
+  }
+  
+  .register-form .input-icon {
+    left: 12px;
+    font-size: 16px;
   }
 }
