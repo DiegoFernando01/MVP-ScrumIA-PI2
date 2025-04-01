@@ -90,7 +90,9 @@ const TransactionList = ({
               <TransactionItem
                 key={transaction.id}
                 transaction={transaction}
-                calculateBudgetUsage={calculateBudgetUsage}
+                calculateBudgetUsage={(category) =>
+                  calculateBudgetUsage(category, transactions)
+                }
                 onEdit={() => onEditTransaction(transaction)}
                 onDelete={() => onDeleteTransaction(transaction.id)}
               />

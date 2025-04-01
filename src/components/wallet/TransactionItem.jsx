@@ -27,8 +27,11 @@ const TransactionItem = ({
 
   // Obtener porcentaje de uso del presupuesto si aplica
   let budgetPercentage = 0;
+  let usage = null;
+
   if (showBudgetIndicator && typeof calculateBudgetUsage === "function") {
-    const usage = calculateBudgetUsage(category);
+    usage = calculateBudgetUsage(category, [transaction]);
+    console.log("🔍 usage:", category, usage); 
     budgetPercentage = usage?.percentage || 0;
   }
 
@@ -38,6 +41,7 @@ const TransactionItem = ({
     if (budgetPercentage < 90) return "status-warning";
     return "status-danger";
   };
+
 
   return (
     <div className="transaction-item">
@@ -54,7 +58,7 @@ const TransactionItem = ({
           )}
         </div>
         
-        {showBudgetIndicator && budgetPercentage > 0 && (
+        {showBudgetIndicator && (
           <div className="usage-indicator">
             <div className="usage-bar">
               <div 

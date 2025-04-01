@@ -138,16 +138,43 @@ useEffect(() => {
 
     // Filtrar transacciones por categoría y tipo (solo gastos) del mes actual
     const { month, year } = getCurrentMonthYear();
-    const relevantTransactions = transactions.filter((t) => {
+
+    transactions.forEach((t) => {
       const transDate = new Date(t.date);
-      return (
+      console.log(`→ Revisando transacción:`, {
+        category: t.category,
+        amount: t.amount,
+        date: t.date,
+        parsedMonth: transDate.getMonth() + 1,
+        parsedYear: transDate.getFullYear(),
+        matches: t.category === category &&
+                 t.type === "expense" &&
+                 transDate.getMonth() + 1 === month &&
+                 transDate.getFullYear() === year
+      });
+    });
+    
+    const relevantTransactions = transactions.filter((t) => {
+      const transDate = new Date(`${t.date}T00:00:00`);
+      const match = (
         t.category === category &&
         t.type === "expense" &&
+        t.userId === auth.currentUser?.uid &&
         transDate.getMonth() + 1 === month &&
         transDate.getFullYear() === year
       );
+    
+      console.log("🔍 Evaluando:", {
+        category: t.category,
+        type: t.type,
+        date: t.date,
+        parsedMonth: transDate.getMonth() + 1,
+        parsedYear: transDate.getFullYear(),
+        match
+      });
+    
+      return match;
     });
-
     // Calcular gastos totales
     const totalExpenses = relevantTransactions.reduce(
       (sum, t) => sum + Number(t.amount),
