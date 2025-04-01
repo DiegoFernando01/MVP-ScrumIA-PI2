@@ -58,15 +58,15 @@ const AlertDisplay = ({ activeAlerts, markAlertAsRead, dismissAlert }) => {
               <div className="flex space-x-2">
                 {!alert.read && (
                   <button
-                    onClick={() => handleMarkAsRead(alert.id)}
-                    className="text-xs text-blue-600 hover:text-blue-800"
-                  >
-                    Marcar como leída
-                  </button>
+                  onClick={() => handleMarkAsRead(alert.id)}
+                  className="btn-action btn-mark-read hover:text-blue-800"
+                >
+                  Marcar como leída
+                </button>
                 )}
                 <button
                   onClick={() => handleDismiss(alert.id)}
-                  className="text-xs text-red-500 hover:text-red-700"
+                  className="btn-action btn-dismiss hover:text-red-700"
                 >
                   Descartar
                 </button>

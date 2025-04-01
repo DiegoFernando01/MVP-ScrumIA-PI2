@@ -337,6 +337,7 @@
   color: #3b82f6;
 }
 
+
 /* Media queries para responsive */
 @media (max-width: 576px) {
   .category-tabs {

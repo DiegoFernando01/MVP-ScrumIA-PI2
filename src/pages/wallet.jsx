@@ -13,7 +13,6 @@ import useTransactionFilters from "../hooks/useTransactionFilters";
 import useBudgets from "../hooks/useBudgets";
 import useAlerts from "../hooks/useAlerts";
 import useReminders from "../hooks/useReminders";
-import generateTestData from "../utils/testDataGenerator";
 import { validateTransaction } from "../utils/validationUtils";
 import useTransactions from "../hooks/useTransactions"; 
 import Reportes from "../components/wallet/Reportes";
@@ -30,6 +29,9 @@ import "../styles/components/wallet/Budget.css";
 import "../styles/components/wallet/Modal.css";
 import "../styles/components/wallet/Alert.css";
 import "../styles/components/wallet/Category.css";
+import "../styles/components/wallet/Reports.css";
+import "../styles/components/wallet/Reminder.css";
+
 
 /**
  * Página principal de billetera

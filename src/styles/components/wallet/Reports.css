@@ -1,0 +1,94 @@
+/* Contenedor principal del reporte */
+.reports-container {
+    background: white;
+    border-radius: 16px;
+    padding: 2rem;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.05);
+    color: #1f2937;
+    margin-top: 1rem;
+  }
+  
+  /* Título y subtítulo */
+  .reports-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+  }
+  
+  .reports-subtitle {
+    color: #6b7280;
+    margin-bottom: 1.5rem;
+  }
+  
+  /* Filtros */
+  .reports-filters {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.5rem;
+  }
+  
+  .reports-filter-group {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .reports-label {
+    font-size: 0.9rem;
+    font-weight: 500;
+    margin-bottom: 0.25rem;
+    color: #374151;
+  }
+  
+  .reports-select {
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    background-color: #f9fafb;
+    font-size: 0.9rem;
+  }
+  
+  /* Botón de exportar */
+  .export-btn {
+    margin-left: auto;
+    margin-top: 0.5rem;
+    padding: 0.6rem 1.2rem;
+    font-weight: 600;
+    font-size: 0.9rem;
+    border: none;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 5px rgba(16, 185, 129, 0.3);
+  }
+  
+  .export-btn:hover {
+    background: linear-gradient(135deg, #059669, #047857);
+    transform: translateY(-1px);
+  }
+  
+  /* Tabla */
+  .reports-table-wrapper {
+    margin-top: 2rem;
+  }
+  
+  .reports-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 0.5rem;
+    font-size: 0.95rem;
+  }
+  
+  .reports-table th,
+  .reports-table td {
+    border: 1px solid #e5e7eb;
+    padding: 0.75rem;
+    text-align: left;
+  }
+  
+  .reports-table th {
+    background-color: #f3f4f6;
+    font-weight: 600;
+  }

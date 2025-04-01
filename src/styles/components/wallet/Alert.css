@@ -227,6 +227,9 @@
   gap: 1rem;
 }
 
+
+
+
 @keyframes slideInRight {
   from {
     transform: translateX(100%);

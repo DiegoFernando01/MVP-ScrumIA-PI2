@@ -112,7 +112,7 @@ const ReminderForm = ({ reminder = null, onSubmit, onCancel }) => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="reminder-form">
       <div>
         <label className="block mb-1 text-sm font-medium text-black">
           Título *
@@ -254,17 +254,17 @@ const ReminderForm = ({ reminder = null, onSubmit, onCancel }) => {
 
       {error && <p className="text-red-500 text-sm">{error}</p>}
 
-      <div className="flex gap-2">
+      <div className="reminder-actions">
         <button
           type="submit"
-          className="flex-1 bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition"
+          className="reminder-btn-save"
         >
           {reminder ? "Actualizar" : "Guardar"}
         </button>
         <button
           type="button"
           onClick={onCancel}
-          className="flex-1 bg-gray-300 text-gray-800 py-2 rounded hover:bg-gray-400 transition"
+          className="reminder-btn-cancel"
         >
           Cancelar
         </button>
