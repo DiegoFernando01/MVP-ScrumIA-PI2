@@ -210,6 +210,28 @@ function Wallet() {
    * Guarda los cambios realizados a una transacción
    */
   const handleSaveEditedTransaction = async (editedTransaction) => {
+    // Si es un gasto, validar que no supere el presupuesto
+    if (editedTransaction.type === "expense") {
+      const usage = budgetManager.calculateBudgetUsage(
+        editedTransaction.category,
+        transactions.filter((t) => t.id !== editedTransaction.id) // excluye la que estamos editando
+      );
+  
+      const nuevoTotal = usage.totalExpenses + Number(editedTransaction.amount);
+      const presupuesto = usage.budgetAmount;
+  
+      if (presupuesto > 0 && nuevoTotal > presupuesto) {
+        alert(
+          `⚠️ Este cambio excede el presupuesto de ${editedTransaction.category}.\n` +
+          `Presupuesto: $${presupuesto.toFixed(2)}\n` +
+          `Gastos actuales (sin incluir esta transacción): $${usage.totalExpenses.toFixed(2)}\n` +
+          `Este cambio: $${Number(editedTransaction.amount).toFixed(2)}`
+        );
+        return; // 🚫 No guardar
+      }
+    }
+  
+    // Guardar si pasa la validación
     const result = await editTransaction(editedTransaction.id, editedTransaction);
     if (result.success) {
       setEditingTransaction(null);
