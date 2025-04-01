@@ -36,7 +36,7 @@ function Login() {
       <div className="login-image-panel">
         <div className="overlay">
           <div className="welcome-text">
-            <h1>ScrumIA Finance</h1>
+            <h1>SmartWallet</h1>
             <p>Administra tus finanzas de manera inteligente</p>
           </div>
         </div>

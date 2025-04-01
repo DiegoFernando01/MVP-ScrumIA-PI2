@@ -55,7 +55,7 @@ function Register() {
       <div className="register-image-panel">
         <div className="overlay">
           <div className="welcome-text">
-            <h1>ScrumIA Finance</h1>
+            <h1>SmartWallet</h1>
             <p>Comienza a administrar tus finanzas de manera inteligente</p>
           </div>
         </div>
