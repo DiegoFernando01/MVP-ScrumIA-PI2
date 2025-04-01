@@ -1,6 +1,7 @@
 import React from "react";
 import CategorySelector from "./CategorySelector";
 
+
 /**
  * Formulario para agregar transacciones
  */
