@@ -37,10 +37,10 @@ const ReminderList = ({
 
   // Obtener estilo según los días restantes
   const getCardStyle = (daysRemaining) => {
-    if (daysRemaining <= 1) return "bg-red-100 border-red-300";
-    if (daysRemaining <= 3) return "bg-orange-100 border-orange-300";
-    if (daysRemaining <= 7) return "bg-yellow-100 border-yellow-300";
-    return "bg-blue-50 border-blue-200";
+    if (daysRemaining <= 1) return "reminder-urgent";
+    if (daysRemaining <= 3) return "reminder-warning";
+    if (daysRemaining <= 7) return "reminder-attention";
+    return "reminder-normal";
   };
 
   // Procesar recordatorios para mostrar días restantes y próxima fecha
@@ -67,41 +67,39 @@ const ReminderList = ({
 
   if (processedReminders.length === 0) {
     return (
-      <div className="text-center py-4 text-gray-500">
+      <div className="reminder-empty">
         No hay recordatorios configurados
       </div>
     );
   }
 
   return (
-    <ul className="space-y-3">
+    <ul className="reminder-list">
       {processedReminders.map((reminder) => (
         <li
           key={reminder.id}
-          className={`border rounded-lg overflow-hidden shadow-sm ${getCardStyle(
-            reminder.daysRemaining
-          )}`}
+          className={`reminder-item ${getCardStyle(reminder.daysRemaining)}`}
         >
-          <div className="p-3">
-            <div className="flex justify-between items-start">
-              <div>
-                <h3 className="font-medium text-gray-800">{reminder.title}</h3>
+          <div className="reminder-item-content">
+            <div className="reminder-item-header">
+              <div className="reminder-item-info">
+                <h3 className="reminder-item-title">{reminder.title}</h3>
 
-                <div className="flex items-center mt-1">
+                <div className="reminder-item-badge-container">
                   <span
-                    className={`text-sm font-medium px-2 py-0.5 rounded ${
+                    className={`reminder-badge ${
                       reminder.daysRemaining <= 3
-                        ? "bg-red-200 text-red-800"
+                        ? "reminder-badge-urgent"
                         : reminder.daysRemaining <= 7
-                        ? "bg-yellow-200 text-yellow-800"
-                        : "bg-blue-200 text-blue-800"
+                        ? "reminder-badge-warning"
+                        : "reminder-badge-normal"
                     }`}
                   >
                     {getDaysRemainingText(reminder.daysRemaining)}
                   </span>
                 </div>
 
-                <p className="text-sm text-gray-600 mt-1">
+                <p className="reminder-item-date">
                   {reminder.type === "one-time" ? (
                     <span>Vence: {reminder.formattedNextDueDate}</span>
                   ) : (
@@ -113,54 +111,53 @@ const ReminderList = ({
                 </p>
 
                 {reminder.amount && (
-                  <p className="text-sm font-medium mt-1">
+                  <p className="reminder-item-amount">
                     Monto: ${parseFloat(reminder.amount).toFixed(2)}
                   </p>
                 )}
 
                 {reminder.description && (
-                  <p className="text-sm text-gray-600 mt-1">
+                  <p className="reminder-description">
                     {reminder.description}
                   </p>
                 )}
 
                 {reminder.category && (
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="reminder-item-category">
                     Categoría: {reminder.category}
                   </p>
                 )}
               </div>
 
-              <div className="flex space-x-1">
-                <label className="inline-flex items-center cursor-pointer">
+              <div className="reminder-toggle-container">
+                <label className="reminder-toggle">
                   <input
                     type="checkbox"
                     checked={reminder.active}
                     onChange={() =>
                       onToggleStatus(reminder.id, !reminder.active)
                     }
-                    className="sr-only peer"
+                    className="reminder-toggle-input"
                   />
-                  <div className="relative w-10 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
+                  <div className="reminder-toggle-switch"></div>
                 </label>
               </div>
             </div>
 
-            <div className="flex justify-end space-x-2 mt-2">
-            <button
-
-              onClick={() => onEdit(reminder)}
-              className="btn-reminder edit"
+            <div className="reminder-item-actions">
+              <button
+                onClick={() => onEdit(reminder)}
+                className="btn-reminder edit"
               >
-              ✏️ Editar
+                ✏️ Editar
               </button>
 
               <button
-              onClick={() => onDelete(reminder.id)}
-              className="btn-reminder delete"
+                onClick={() => onDelete(reminder.id)}
+                className="btn-reminder delete"
               >
-              🗑️ Eliminar
-            </button>
+                🗑️ Eliminar
+              </button>
             </div>
           </div>
         </li>

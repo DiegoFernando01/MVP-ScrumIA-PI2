@@ -48,7 +48,7 @@ const ReminderManager = ({ reminderHook }) => {
 
   const handleSubmit = async (reminderData) => {
     let result;
-  
+
     if (editingReminder) {
       result = await updateReminder(editingReminder.id, reminderData);
       if (!result.success) {
@@ -62,7 +62,7 @@ const ReminderManager = ({ reminderHook }) => {
         return;
       }
     }
-  
+
     setIsCreating(false);
     setEditingReminder(null);
   };
@@ -85,25 +85,25 @@ const ReminderManager = ({ reminderHook }) => {
         />
       )}
 
-      <div className="bg-white p-4 rounded shadow">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-lg font-semibold text-black">
+      <div className="reminder-container">
+        <div className="reminder-header">
+          <h2 className="reminder-title">
             Recordatorios de Vencimiento
           </h2>
 
           {!isCreating && (
             <button
-            onClick={handleCreateNew}
-            className="btn-create"
-          >
-            Nuevo Recordatorio
-          </button>
+              onClick={handleCreateNew}
+              className="btn-create"
+            >
+              Nuevo Recordatorio
+            </button>
           )}
         </div>
 
         {isCreating ? (
-          <div>
-            <h3 className="text-md font-medium text-gray-800 mb-3">
+          <div className="reminder-form-container">
+            <h3 className="reminder-subtitle">
               {editingReminder ? "Editar Recordatorio" : "Nuevo Recordatorio"}
             </h3>
             <ReminderForm
@@ -115,26 +115,26 @@ const ReminderManager = ({ reminderHook }) => {
         ) : (
           <div>
             {/* Filtros */}
-            <div className="mb-4 border-b pb-2">
-              <div className="flex space-x-4">
-              <button
-                onClick={() => setFilterType("all")}
-                className={`btn-filter btn-filter-all ${filterType === "all" ? "font-medium" : "text-gray-600 hover:bg-gray-100"}`}
-              >
-                Todos
-              </button>
-              <button
-                onClick={() => setFilterType("active")}
-                className={`btn-filter btn-filter-active ${filterType === "active" ? "font-medium" : "text-gray-600 hover:bg-gray-100"}`}
-              >
-                Activos
-              </button>
-              <button
-                onClick={() => setFilterType("inactive")}
-                className={`btn-filter btn-filter-inactive ${filterType === "inactive" ? "font-medium" : "text-gray-600 hover:bg-gray-100"}`}
-              >
-                Inactivos
-              </button>
+            <div className="reminder-filters">
+              <div className="reminder-filter-buttons">
+                <button
+                  onClick={() => setFilterType("all")}
+                  className={`btn-filter btn-filter-all ${filterType === "all" ? "active" : ""}`}
+                >
+                  Todos
+                </button>
+                <button
+                  onClick={() => setFilterType("active")}
+                  className={`btn-filter btn-filter-active ${filterType === "active" ? "active" : ""}`}
+                >
+                  Activos
+                </button>
+                <button
+                  onClick={() => setFilterType("inactive")}
+                  className={`btn-filter btn-filter-inactive ${filterType === "inactive" ? "active" : ""}`}
+                >
+                  Inactivos
+                </button>
               </div>
             </div>
 

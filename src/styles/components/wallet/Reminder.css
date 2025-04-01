@@ -79,6 +79,49 @@
     background: #d1d5db;
   }
   
+  /* Nuevos estilos para el componente ReminderManager */
+  .reminder-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+  }
+  
+  .reminder-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #1f2937;
+  }
+  
+  .reminder-subtitle {
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: #374151;
+    margin-bottom: 1rem;
+  }
+  
+  .reminder-form-container {
+    margin-bottom: 1.5rem;
+  }
+  
+  .reminder-filters {
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid #e5e7eb;
+    padding-bottom: 1rem;
+  }
+  
+  .reminder-filter-buttons {
+    display: flex;
+    gap: 1rem;
+  }
+  
+  /* Estilos para los botones de filtro con estado activo */
+  .btn-filter.active {
+    font-weight: 700;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+  
   /* Lista de recordatorios */
   .reminder-list {
     display: flex;
@@ -92,11 +135,157 @@
     padding: 1rem;
     border-left: 4px solid #3b82f6;
     transition: transform 0.2s ease;
+    margin-bottom: 1rem;
   }
   
   .reminder-item:hover {
     background-color: #f3f4f6;
     transform: translateX(4px);
+  }
+  
+  .reminder-item.reminder-urgent {
+    border-left-color: #ef4444;
+    background-color: #fee2e2;
+  }
+  
+  .reminder-item.reminder-warning {
+    border-left-color: #f59e0b;
+    background-color: #fff7ed;
+  }
+  
+  .reminder-item.reminder-attention {
+    border-left-color: #eab308;
+    background-color: #fef9c3;
+  }
+  
+  .reminder-item.reminder-normal {
+    border-left-color: #3b82f6;
+    background-color: #eff6ff;
+  }
+  
+  .reminder-item-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  
+  .reminder-item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+  
+  .reminder-item-info {
+    flex: 1;
+  }
+  
+  .reminder-item-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #1f2937;
+    margin-bottom: 0.5rem;
+  }
+  
+  .reminder-item-badge-container {
+    margin-bottom: 0.5rem;
+  }
+  
+  .reminder-badge {
+    display: inline-block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+  }
+  
+  .reminder-badge-urgent {
+    background-color: #fee2e2;
+    color: #b91c1c;
+  }
+  
+  .reminder-badge-warning {
+    background-color: #fef3c7;
+    color: #d97706;
+  }
+  
+  .reminder-badge-normal {
+    background-color: #dbeafe;
+    color: #1e40af;
+  }
+  
+  .reminder-item-date {
+    font-size: 0.85rem;
+    color: #4b5563;
+    margin-bottom: 0.25rem;
+  }
+  
+  .reminder-item-amount {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #1f2937;
+    margin-bottom: 0.25rem;
+  }
+  
+  .reminder-item-category {
+    font-size: 0.75rem;
+    color: #6b7280;
+  }
+  
+  .reminder-item-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+  }
+  
+  /* Estilos para el toggle switch */
+  .reminder-toggle-container {
+    margin-left: 1rem;
+  }
+  
+  .reminder-toggle {
+    position: relative;
+    display: inline-block;
+    width: 2.5rem;
+    height: 1.25rem;
+    cursor: pointer;
+  }
+  
+  .reminder-toggle-input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+  
+  .reminder-toggle-switch {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #e5e7eb;
+    border-radius: 1.25rem;
+    transition: 0.3s;
+  }
+  
+  .reminder-toggle-switch:before {
+    position: absolute;
+    content: "";
+    height: 0.9rem;
+    width: 0.9rem;
+    left: 0.2rem;
+    bottom: 0.2rem;
+    background-color: white;
+    border-radius: 50%;
+    transition: 0.3s;
+  }
+  
+  .reminder-toggle-input:checked + .reminder-toggle-switch {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+  }
+  
+  .reminder-toggle-input:checked + .reminder-toggle-switch:before {
+    transform: translateX(1.2rem);
   }
   
   .reminder-title {
@@ -269,6 +458,14 @@
   .btn-dismiss:hover {
     background-color: #fecaca;
     transform: translateY(-1px);
+  }
+
+  /* Nuevos estilos para la lista de recordatorios */
+  .reminder-empty {
+    text-align: center;
+    padding: 2rem 0;
+    color: #6b7280;
+    font-size: 0.95rem;
   }
 
 
