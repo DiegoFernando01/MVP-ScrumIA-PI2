@@ -37,10 +37,10 @@ const ReminderList = ({
 
   // Obtener estilo según los días restantes
   const getCardStyle = (daysRemaining) => {
-    if (daysRemaining <= 1) return "border-l-4 border-l-red-500 bg-red-50";
-    if (daysRemaining <= 3) return "border-l-4 border-l-orange-500 bg-orange-50";
-    if (daysRemaining <= 7) return "border-l-4 border-l-yellow-500 bg-yellow-50";
-    return "border-l-4 border-l-blue-500 bg-blue-50";
+    if (daysRemaining <= 1) return "bg-red-100 border-red-300";
+    if (daysRemaining <= 3) return "bg-orange-100 border-orange-300";
+    if (daysRemaining <= 7) return "bg-yellow-100 border-yellow-300";
+    return "bg-blue-50 border-blue-200";
   };
 
   // Procesar recordatorios para mostrar días restantes y próxima fecha
@@ -67,119 +67,103 @@ const ReminderList = ({
 
   if (processedReminders.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center p-10 text-gray-500 bg-gray-50 rounded-lg border border-dashed border-gray-300">
-        <div className="text-5xl mb-4">📅</div>
-        <h3 className="text-xl font-medium text-gray-700 mb-2">No hay recordatorios configurados</h3>
-        <p className="text-gray-500">Crea un nuevo recordatorio para gestionar tus vencimientos</p>
+      <div className="text-center py-4 text-gray-500">
+        No hay recordatorios configurados
       </div>
     );
   }
 
   return (
-    <div className="space-y-4">
+    <ul className="space-y-3">
       {processedReminders.map((reminder) => (
-        <div
+        <li
           key={reminder.id}
-          className={`rounded-lg overflow-hidden shadow-sm transition-all hover:shadow-md ${getCardStyle(
+          className={`border rounded-lg overflow-hidden shadow-sm ${getCardStyle(
             reminder.daysRemaining
           )}`}
         >
-          <div className="p-4">
+          <div className="p-3">
             <div className="flex justify-between items-start">
-              <div className="flex-1">
-                <div className="flex items-center">
-                  <h3 className="font-semibold text-gray-800 text-lg">{reminder.title}</h3>
-                  <div className="ml-3">
-                    <span
-                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        reminder.daysRemaining <= 1
-                          ? "bg-red-100 text-red-800"
-                          : reminder.daysRemaining <= 3
-                          ? "bg-orange-100 text-orange-800"
-                          : reminder.daysRemaining <= 7
-                          ? "bg-yellow-100 text-yellow-800"
-                          : "bg-blue-100 text-blue-800"
-                      }`}
-                    >
-                      {getDaysRemainingText(reminder.daysRemaining)}
-                    </span>
-                  </div>
+              <div>
+                <h3 className="font-medium text-gray-800">{reminder.title}</h3>
+
+                <div className="flex items-center mt-1">
+                  <span
+                    className={`text-sm font-medium px-2 py-0.5 rounded ${
+                      reminder.daysRemaining <= 3
+                        ? "bg-red-200 text-red-800"
+                        : reminder.daysRemaining <= 7
+                        ? "bg-yellow-200 text-yellow-800"
+                        : "bg-blue-200 text-blue-800"
+                    }`}
+                  >
+                    {getDaysRemainingText(reminder.daysRemaining)}
+                  </span>
                 </div>
 
-                <div className="mt-2 text-sm text-gray-600">
+                <p className="text-sm text-gray-600 mt-1">
                   {reminder.type === "one-time" ? (
-                    <div className="flex items-center">
-                      <span className="mr-1">🗓️</span>
-                      <span>Vence: {reminder.formattedNextDueDate}</span>
-                    </div>
+                    <span>Vence: {reminder.formattedNextDueDate}</span>
                   ) : (
-                    <div className="flex items-center">
-                      <span className="mr-1">🔄</span>
-                      <span>
-                        Próximo vencimiento: {reminder.formattedNextDueDate} (
-                        {getFrequencyText(reminder.frequency)})
-                      </span>
-                    </div>
+                    <span>
+                      Próximo vencimiento: {reminder.formattedNextDueDate} (
+                      {getFrequencyText(reminder.frequency)})
+                    </span>
                   )}
-                </div>
+                </p>
 
                 {reminder.amount && (
-                  <div className="mt-1.5 flex items-center text-gray-700">
-                    <span className="mr-1">💰</span>
-                    <span className="font-medium">
-                      ${parseFloat(reminder.amount).toFixed(2)}
-                    </span>
-                  </div>
+                  <p className="text-sm font-medium mt-1">
+                    Monto: ${parseFloat(reminder.amount).toFixed(2)}
+                  </p>
                 )}
 
                 {reminder.description && (
-                  <div className="mt-1.5 text-sm text-gray-600">
-                    <p className="italic">{reminder.description}</p>
-                  </div>
+                  <p className="text-sm text-gray-600 mt-1">
+                    {reminder.description}
+                  </p>
                 )}
 
                 {reminder.category && (
-                  <div className="mt-2">
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-                      {reminder.category}
-                    </span>
-                  </div>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Categoría: {reminder.category}
+                  </p>
                 )}
               </div>
 
-              <div className="flex items-center">
-                <label className="relative inline-flex items-center mr-3 cursor-pointer">
+              <div className="flex space-x-1">
+                <label className="inline-flex items-center cursor-pointer">
                   <input
                     type="checkbox"
                     checked={reminder.active}
-                    onChange={() => onToggleStatus(reminder.id, !reminder.active)}
+                    onChange={() =>
+                      onToggleStatus(reminder.id, !reminder.active)
+                    }
                     className="sr-only peer"
                   />
-                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+                  <div className="relative w-10 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
                 </label>
               </div>
             </div>
 
-            <div className="flex justify-end space-x-2 mt-3">
+            <div className="flex justify-end space-x-2 mt-2">
               <button
                 onClick={() => onEdit(reminder)}
-                className="inline-flex items-center px-3 py-1 text-sm font-medium text-purple-700 bg-purple-100 rounded-md hover:bg-purple-200 transition-colors"
-                style={{ backgroundColor: 'rgb(243 232 255)' }}
+                className="text-xs text-blue-600 hover:text-blue-800"
               >
-                <span className="mr-1">✏️</span> Editar
+                Editar
               </button>
               <button
                 onClick={() => onDelete(reminder.id)}
-                className="inline-flex items-center px-3 py-1 text-sm font-medium text-red-700 bg-red-100 rounded-md hover:bg-red-200 transition-colors"
-                style={{ backgroundColor: 'rgb(254 226 226)' }}
+                className="text-xs text-red-600 hover:text-red-800"
               >
-                <span className="mr-1">🗑️</span> Eliminar
+                Eliminar
               </button>
             </div>
           </div>
-        </div>
+        </li>
       ))}
-    </div>
+    </ul>
   );
 };
 

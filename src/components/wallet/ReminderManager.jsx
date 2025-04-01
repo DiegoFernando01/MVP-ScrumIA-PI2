@@ -48,7 +48,7 @@ const ReminderManager = ({ reminderHook }) => {
 
   const handleSubmit = async (reminderData) => {
     let result;
-
+  
     if (editingReminder) {
       result = await updateReminder(editingReminder.id, reminderData);
       if (!result.success) {
@@ -62,7 +62,7 @@ const ReminderManager = ({ reminderHook }) => {
         return;
       }
     }
-
+  
     setIsCreating(false);
     setEditingReminder(null);
   };
@@ -75,7 +75,7 @@ const ReminderManager = ({ reminderHook }) => {
   });
 
   return (
-    <div className="bg-gradient-to-r from-blue-50 via-purple-50 to-pink-50 p-6 rounded-lg shadow-lg">
+    <div>
       {/* Mostrar alertas de recordatorios si hay */}
       {reminderAlerts && reminderAlerts.length > 0 && (
         <AlertDisplay
@@ -85,17 +85,16 @@ const ReminderManager = ({ reminderHook }) => {
         />
       )}
 
-      <div className="bg-white p-6 rounded-lg shadow-md">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold text-purple-700">
+      <div className="bg-white p-4 rounded shadow">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-lg font-semibold text-black">
             Recordatorios de Vencimiento
           </h2>
 
           {!isCreating && (
             <button
               onClick={handleCreateNew}
-              className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-4 py-2 rounded-lg hover:from-purple-600 hover:to-pink-600 transition-all text-sm font-medium shadow-md !important"
-              style={{ backgroundColor: 'transparent' }}
+              className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 transition text-sm"
             >
               Nuevo Recordatorio
             </button>
@@ -104,7 +103,7 @@ const ReminderManager = ({ reminderHook }) => {
 
         {isCreating ? (
           <div>
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">
+            <h3 className="text-md font-medium text-gray-800 mb-3">
               {editingReminder ? "Editar Recordatorio" : "Nuevo Recordatorio"}
             </h3>
             <ReminderForm
@@ -116,38 +115,35 @@ const ReminderManager = ({ reminderHook }) => {
         ) : (
           <div>
             {/* Filtros */}
-            <div className="mb-6 border-b pb-4">
+            <div className="mb-4 border-b pb-2">
               <div className="flex space-x-4">
                 <button
                   onClick={() => setFilterType("all")}
-                  className={`px-3 py-1 text-sm rounded-lg shadow-md transition-all font-medium ${
+                  className={`px-2 py-1 text-sm rounded ${
                     filterType === "all"
-                      ? "bg-purple-100 text-purple-800"
-                      : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                      ? "bg-blue-100 text-blue-800 font-medium"
+                      : "text-gray-600 hover:bg-gray-100"
                   }`}
-                  style={{ backgroundColor: filterType === "all" ? "rgb(243 232 255)" : "rgb(243 244 246)" }}
                 >
                   Todos
                 </button>
                 <button
                   onClick={() => setFilterType("active")}
-                  className={`px-3 py-1 text-sm rounded-lg shadow-md transition-all font-medium ${
+                  className={`px-2 py-1 text-sm rounded ${
                     filterType === "active"
-                      ? "bg-green-100 text-green-800"
-                      : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                      ? "bg-green-100 text-green-800 font-medium"
+                      : "text-gray-600 hover:bg-gray-100"
                   }`}
-                  style={{ backgroundColor: filterType === "active" ? "rgb(220 252 231)" : "rgb(243 244 246)" }}
                 >
                   Activos
                 </button>
                 <button
                   onClick={() => setFilterType("inactive")}
-                  className={`px-3 py-1 text-sm rounded-lg shadow-md transition-all font-medium ${
+                  className={`px-2 py-1 text-sm rounded ${
                     filterType === "inactive"
-                      ? "bg-red-100 text-red-800"
-                      : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                      ? "bg-gray-200 text-gray-800 font-medium"
+                      : "text-gray-600 hover:bg-gray-100"
                   }`}
-                  style={{ backgroundColor: filterType === "inactive" ? "rgb(254 226 226)" : "rgb(243 244 246)" }}
                 >
                   Inactivos
                 </button>
