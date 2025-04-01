@@ -107,6 +107,7 @@
   list-style-type: none;
   padding: 0;
   margin: 0;
+  padding-bottom: 120px; 
 }
 
 .menu-item {
@@ -172,13 +173,26 @@
   overflow: hidden;
 }
 
+.sidebar {
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar-menu {
+  flex: 1;
+  overflow-y: auto;
+  padding-bottom: 120px;
+}
+
+
 /* Footer del sidebar */
 .sidebar-footer {
-  position: absolute;
-  bottom: 0;
-  width: 100%;
-  padding: 1rem 1.5rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  pointer-events: none;
+}
+
+.logout-button,
+.user-info {
+  pointer-events: auto;
 }
 
 .user-info {

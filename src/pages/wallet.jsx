@@ -30,6 +30,8 @@ import "../styles/components/wallet/Budget.css";
 import "../styles/components/wallet/Modal.css";
 import "../styles/components/wallet/Alert.css";
 import "../styles/components/wallet/Category.css";
+import "../styles/components/wallet/Reports.css";
+
 
 /**
  * Página principal de billetera
