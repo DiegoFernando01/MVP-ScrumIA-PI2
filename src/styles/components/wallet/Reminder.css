@@ -1,0 +1,274 @@
+/* Reminder.css */
+/* Estilos generales para recordatorios */
+
+.reminder-container {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+  }
+  
+  .reminder-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+  
+  .reminder-form label {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #1f2937;
+  }
+  
+  .reminder-form input,
+  .reminder-form select,
+  .reminder-form textarea {
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+    font-size: 0.95rem;
+    color: #374151;
+    background-color: #f9fafb;
+    transition: border-color 0.2s ease;
+  }
+  
+  .reminder-form input:focus,
+  .reminder-form select:focus,
+  .reminder-form textarea:focus {
+    outline: none;
+    border-color: #60a5fa;
+    background-color: white;
+    box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.2);
+  }
+  
+  .reminder-actions {
+    display: flex;
+    gap: 1rem;
+  }
+  
+  .reminder-btn-save {
+    flex: 1;
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    color: white;
+    padding: 0.75rem;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  
+  .reminder-btn-save:hover {
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  }
+  
+  .reminder-btn-cancel {
+    flex: 1;
+    background: #e5e7eb;
+    color: #374151;
+    padding: 0.75rem;
+    border: none;
+    border-radius: 8px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  
+  .reminder-btn-cancel:hover {
+    background: #d1d5db;
+  }
+  
+  /* Lista de recordatorios */
+  .reminder-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .reminder-item {
+    background-color: #f9fafb;
+    border-radius: 10px;
+    padding: 1rem;
+    border-left: 4px solid #3b82f6;
+    transition: transform 0.2s ease;
+  }
+  
+  .reminder-item:hover {
+    background-color: #f3f4f6;
+    transform: translateX(4px);
+  }
+  
+  .reminder-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #1f2937;
+  }
+  
+  .reminder-description {
+    font-size: 0.85rem;
+    color: #6b7280;
+    margin-top: 0.25rem;
+  }
+  
+  .reminder-due {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: #1e40af;
+    margin-top: 0.5rem;
+  }
+  
+  .btn-reminder {
+    padding: 0.6rem 1.2rem;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.875rem;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+  }
+  
+  /* Botón EDITAR (azul) */
+  .btn-reminder.edit {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    color: white;
+    box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
+  }
+  
+  .btn-reminder.edit:hover {
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px rgba(59, 130, 246, 0.4);
+  }
+  
+  /* Botón ELIMINAR (rojo) */
+  .btn-reminder.delete {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    color: white;
+    box-shadow: 0 2px 4px rgba(239, 68, 68, 0.3);
+  }
+  
+  .btn-reminder.delete:hover {
+    background: linear-gradient(135deg, #dc2626, #b91c1c);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px rgba(239, 68, 68, 0.4);
+  }
+
+  /* Estilo base para los botones de filtro */
+.btn-filter {
+    padding: 0.6rem 1.2rem;
+    font-size: 0.875rem;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 1px solid transparent;
+    display: inline-flex;
+    align-items: center;
+  }
+  
+  /* Todos: Azul claro */
+  .btn-filter-all {
+    background-color: #e0f2fe;
+    color: #1d4ed8;
+    border-color: #1d4ed8;
+  }
+  
+  .btn-filter-all:hover {
+    background-color: #c7d8f9;
+    transform: translateY(-1px);
+  }
+  
+  /* Activos: Verde azulado */
+  .btn-filter-active {
+    background-color: #d1f7e5;
+    color: #10b981;
+    border-color: #10b981;
+  }
+  
+  .btn-filter-active:hover {
+    background-color: #a5e8d9;
+    transform: translateY(-1px);
+  }
+  
+  /* Inactivos: Azul más suave */
+  .btn-filter-inactive {
+    background-color: #d1e7ff;
+    color: #2563eb;
+    border-color: #2563eb;
+  }
+  
+  .btn-filter-inactive:hover {
+    background-color: #accbfa;
+    transform: translateY(-1px);
+  }
+
+  /* Botón de Nuevo Recordatorio */
+.btn-create {
+    background: linear-gradient(135deg, #3b82f6, #2563eb); /* Azul claro a oscuro */
+    color: white;
+    padding: 0.75rem 1.5rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: none;
+    display: inline-flex;
+    align-items: center;
+  }
+  
+  .btn-create:hover {
+    background: linear-gradient(135deg, #2563eb, #1d4ed8); /* Efecto de hover */
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(59, 130, 246, 0.3); /* Sombra para dar profundidad */
+  }
+  
+  /* Estilos adicionales */
+  .btn-create:active {
+    transform: translateY(1px);
+  }
+
+  
+  /* Estilo base para los botones de acción */
+  .btn-action {
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+    display: inline-flex;
+    align-items: center;
+  }
+  
+  /* Marcar como leída: Azul */
+  .btn-mark-read {
+    background-color: #eff6ff;
+    color: #1d4ed8;
+    border: 1px solid #1d4ed8;
+  }
+  
+  .btn-mark-read:hover {
+    background-color: #dbeafe;
+    transform: translateY(-1px);
+  }
+  
+  /* Descartar: Rojo */
+  .btn-dismiss {
+    background-color: #fee2e2;
+    color: #ef4444;
+    border: 1px solid #ef4444;
+  }
+  
+  .btn-dismiss:hover {
+    background-color: #fecaca;
+    transform: translateY(-1px);
+  }
+
+

@@ -93,11 +93,11 @@ const ReminderManager = ({ reminderHook }) => {
 
           {!isCreating && (
             <button
-              onClick={handleCreateNew}
-              className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 transition text-sm"
-            >
-              Nuevo Recordatorio
-            </button>
+            onClick={handleCreateNew}
+            className="btn-create"
+          >
+            Nuevo Recordatorio
+          </button>
           )}
         </div>
 
@@ -117,36 +117,24 @@ const ReminderManager = ({ reminderHook }) => {
             {/* Filtros */}
             <div className="mb-4 border-b pb-2">
               <div className="flex space-x-4">
-                <button
-                  onClick={() => setFilterType("all")}
-                  className={`px-2 py-1 text-sm rounded ${
-                    filterType === "all"
-                      ? "bg-blue-100 text-blue-800 font-medium"
-                      : "text-gray-600 hover:bg-gray-100"
-                  }`}
-                >
-                  Todos
-                </button>
-                <button
-                  onClick={() => setFilterType("active")}
-                  className={`px-2 py-1 text-sm rounded ${
-                    filterType === "active"
-                      ? "bg-green-100 text-green-800 font-medium"
-                      : "text-gray-600 hover:bg-gray-100"
-                  }`}
-                >
-                  Activos
-                </button>
-                <button
-                  onClick={() => setFilterType("inactive")}
-                  className={`px-2 py-1 text-sm rounded ${
-                    filterType === "inactive"
-                      ? "bg-gray-200 text-gray-800 font-medium"
-                      : "text-gray-600 hover:bg-gray-100"
-                  }`}
-                >
-                  Inactivos
-                </button>
+              <button
+                onClick={() => setFilterType("all")}
+                className={`btn-filter btn-filter-all ${filterType === "all" ? "font-medium" : "text-gray-600 hover:bg-gray-100"}`}
+              >
+                Todos
+              </button>
+              <button
+                onClick={() => setFilterType("active")}
+                className={`btn-filter btn-filter-active ${filterType === "active" ? "font-medium" : "text-gray-600 hover:bg-gray-100"}`}
+              >
+                Activos
+              </button>
+              <button
+                onClick={() => setFilterType("inactive")}
+                className={`btn-filter btn-filter-inactive ${filterType === "inactive" ? "font-medium" : "text-gray-600 hover:bg-gray-100"}`}
+              >
+                Inactivos
+              </button>
               </div>
             </div>
 

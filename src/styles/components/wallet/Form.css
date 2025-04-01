@@ -149,6 +149,43 @@
   margin-top: 1.5rem;
 }
 
+/* Estilos para botones de acción en formularios */
+.btn-save {
+  background-color: #3056d3; /* Azul para el botón de guardar */
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: none;
+}
+
+.btn-save:hover {
+  background-color: #274ab8;
+  box-shadow: 0 4px 10px rgba(92, 39, 195, 0.3);
+  transform: translateY(-1px);
+}
+
+/* Estilos para el botón de cancelar */
+.btn-cancel {
+  background-color: #f3f4f6; /* Gris claro para cancelar */
+  color: #6b7280;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: none;
+}
+
+.btn-cancel:hover {
+  background-color: #e5e7eb;
+  transform: translateY(-1px);
+}
+
 /* Media queries para formularios */
 @media (max-width: 576px) {
   .form-grid {

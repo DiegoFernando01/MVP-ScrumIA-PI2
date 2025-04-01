@@ -147,18 +147,20 @@ const ReminderList = ({
             </div>
 
             <div className="flex justify-end space-x-2 mt-2">
-              <button
-                onClick={() => onEdit(reminder)}
-                className="text-xs text-blue-600 hover:text-blue-800"
+            <button
+
+              onClick={() => onEdit(reminder)}
+              className="btn-reminder edit"
               >
-                Editar
+              ✏️ Editar
               </button>
+
               <button
-                onClick={() => onDelete(reminder.id)}
-                className="text-xs text-red-600 hover:text-red-800"
+              onClick={() => onDelete(reminder.id)}
+              className="btn-reminder delete"
               >
-                Eliminar
-              </button>
+              🗑️ Eliminar
+            </button>
             </div>
           </div>
         </li>
