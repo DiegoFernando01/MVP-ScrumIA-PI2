@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import TransactionForm from "../components/wallet/TransactionForm";
@@ -8,6 +8,8 @@ import TransactionList from "../components/wallet/TransactionList";
 import BudgetManager from "../components/wallet/BudgetManager";
 import AlertManager from "../components/wallet/AlertManager";
 import ReminderManager from "../components/wallet/ReminderManager";
+import AlertDisplay from "../components/wallet/AlertDisplay";
+import AlertsDropdown from "../components/wallet/AlertsDropdown";
 import useCategories from "../hooks/useCategories";
 import useTransactionFilters from "../hooks/useTransactionFilters";
 import useBudgets from "../hooks/useBudgets";
@@ -67,6 +69,8 @@ function Wallet() {
     category: "",
   });
   const [errors, setErrors] = useState({});
+
+  // Estado para navegación y UI
   const [activeTab, setActiveTab] = useState("transactions"); // Para navegar entre secciones
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false); // Para controlar el estado de la barra lateral
 
@@ -83,6 +87,15 @@ function Wallet() {
     balance: 0,
     recentTransactions: []
   });
+  
+  // Estado para mostrar alertas flotantes cuando se genera una nueva alerta
+  const [floatingAlerts, setFloatingAlerts] = useState([]);
+  
+  // Estado para rastrear cambios en transacciones que requieren revisar alertas
+  const [shouldCheckAlerts, setShouldCheckAlerts] = useState(false);
+  
+  // Variable para evitar verificaciones de alertas en el primer renderizado
+  const [isInitialRender, setIsInitialRender] = useState(true);
 
   // Obtener datos del usuario
   useEffect(() => {
@@ -119,13 +132,78 @@ function Wallet() {
         recentTransactions: recent
       });
 
-      // Comprobar alertas de presupuesto
-      const expenseCategories = categoryManager.predefinedCategories.expense;
-      alertManager.checkBudgetAlerts(expenseCategories, (category) =>
-        budgetManager.calculateBudgetUsage(category, transactions)
-      );
+      // Solo marcar para revisar alertas si no es la carga inicial
+      if (!isInitialRender) {
+        console.log("Transaction changes detected, should check alerts");
+        setShouldCheckAlerts(true);
+      } else {
+        setIsInitialRender(false);
+        // Verificar alertas también en la carga inicial para recuperar estado
+        setShouldCheckAlerts(true);
+      }
     }
-  }, [transactions, budgetManager.budgets]);
+  }, [transactions, isInitialRender]);
+
+  // Función para verificar alertas de manera segura
+  const checkAlertsIfNeeded = useCallback(() => {
+    console.log("checkAlertsIfNeeded called:", { shouldCheck: shouldCheckAlerts, transactionsCount: transactions.length });
+    
+    if (!shouldCheckAlerts || transactions.length === 0) return;
+    
+    // Comprobar alertas de presupuesto
+    const expenseCategories = categoryManager.predefinedCategories.expense;
+    const previousAlertCount = alertManager.activeAlerts.length;
+    
+    console.log("Current active alerts:", alertManager.activeAlerts);
+    console.log("Previous alert count:", previousAlertCount);
+    
+    // Actualizar todas las alertas de presupuesto
+    alertManager.resetBudgetAlerts(); // Limpia alertas de presupuesto existentes
+    alertManager.checkBudgetAlerts(expenseCategories, (category) =>
+      budgetManager.calculateBudgetUsage(category, transactions)
+    );
+    
+    // Si se generaron nuevas alertas, mostrarlas como flotantes
+    console.log("After check, active alerts:", alertManager.activeAlerts);
+    const hasNewAlerts = alertManager.activeAlerts.length > previousAlertCount;
+    
+    console.log("Has new alerts:", hasNewAlerts);
+    if (hasNewAlerts) {
+      const newAlerts = alertManager.activeAlerts.slice(
+        Math.max(0, previousAlertCount)
+      );
+      
+      console.log("New floating alerts to display:", newAlerts);
+      setFloatingAlerts(newAlerts);
+      
+      // Configurar un temporizador para ocultar las alertas flotantes después de 5 segundos
+      setTimeout(() => {
+        setFloatingAlerts([]);
+      }, 5000);
+    }
+    
+    // Resetear la bandera para evitar bucles infinitos
+    setShouldCheckAlerts(false);
+  }, [shouldCheckAlerts, transactions, budgetManager, alertManager, categoryManager]);
+
+  // Efecto separado para manejar comprobación de alertas
+  useEffect(() => {
+    console.log("Effect triggered for checkAlertsIfNeeded");
+    checkAlertsIfNeeded();
+  }, [checkAlertsIfNeeded]);
+
+  // Escuchar evento para navegar a la pestaña de alertas
+  useEffect(() => {
+    const handleNavigateToAlerts = () => {
+      setActiveTab("alerts");
+    };
+    
+    window.addEventListener('navigate-to-alerts', handleNavigateToAlerts);
+    
+    return () => {
+      window.removeEventListener('navigate-to-alerts', handleNavigateToAlerts);
+    };
+  }, []);
 
   // Obtener categorías únicas para filtros
   const getUniqueCategories = () => {
@@ -138,7 +216,7 @@ function Wallet() {
    */
   const handleChange = (e) => {
     const { name, value } = e.target;
-
+    
     // Resetear categoría cuando cambia el tipo
     if (name === "type") {
       setFormData({
@@ -162,7 +240,50 @@ function Wallet() {
       return;
     }
   
-    await createTransaction(formData); // con Firebase
+    // Si es un gasto, validar que no supere el presupuesto
+    let willExceedBudget = false;
+    let budgetMessage = "";
+    
+    if (formData.type === "expense" && formData.category) {
+      const usage = budgetManager.calculateBudgetUsage(formData.category, transactions);
+      console.log(`Budget check for new transaction in ${formData.category}:`, usage);
+      
+      if (usage.hasbudget) {
+        const nuevoTotal = usage.totalExpenses + Number(formData.amount);
+        const presupuesto = usage.budgetAmount;
+        
+        if (nuevoTotal > presupuesto) {
+          willExceedBudget = true;
+          budgetMessage = `Esta transacción excederá tu presupuesto para ${formData.category}.`;
+        }
+      }
+    }
+    
+    // Guardar la transacción 
+    const result = await createTransaction(formData);
+    console.log("Transaction created:", result);
+    
+    // Si era un gasto que excede presupuesto, mostrar alerta flotante inmediatamente
+    if (willExceedBudget) {
+      const newAlert = {
+        id: `budget-exceeded-${Date.now()}`,
+        type: 'budget-exceeded',
+        category: formData.category,
+        message: budgetMessage,
+        timestamp: new Date().toISOString(),
+        read: false
+      };
+      
+      console.log("Creating immediate budget exceeded alert:", newAlert);
+      setFloatingAlerts([newAlert]);
+      
+      // Limpiar la alerta después de 5 segundos
+      setTimeout(() => {
+        setFloatingAlerts([]);
+      }, 5000);
+    }
+    
+    // Limpiar el formulario después de guardar
     setFormData({
       amount: "",
       type: "income",
@@ -223,17 +344,34 @@ function Wallet() {
       const presupuesto = usage.budgetAmount;
   
       if (presupuesto > 0 && nuevoTotal > presupuesto) {
-        alert(
-          `⚠️ Este cambio excede el presupuesto de ${editedTransaction.category}.\n` +
+        // Mostrar alerta de exceso de presupuesto
+        const exceedMsg = `⚠️ Este cambio excede el presupuesto de ${editedTransaction.category}.\n` +
           `Presupuesto: $${presupuesto.toFixed(2)}\n` +
           `Gastos actuales (sin incluir esta transacción): $${usage.totalExpenses.toFixed(2)}\n` +
-          `Este cambio: $${Number(editedTransaction.amount).toFixed(2)}`
-        );
-        return; // 🚫 No guardar
+          `Este cambio: $${Number(editedTransaction.amount).toFixed(2)}`;
+        
+        // Preguntar al usuario si quiere continuar
+        const continuar = window.confirm(exceedMsg + "\n\n¿Deseas continuar de todas formas?");
+        if (!continuar) {
+          return; // 🚫 No guardar si el usuario cancela
+        }
+        
+        // Preparar alerta flotante si el usuario decide continuar
+        setFloatingAlerts([{
+          id: `budget-exceeded-edit-${Date.now()}`,
+          type: 'budget-exceeded',
+          category: editedTransaction.category,
+          message: `Has sobrepasado el presupuesto de ${editedTransaction.category} con esta modificación.`,
+          timestamp: new Date().toISOString()
+        }]);
+        
+        setTimeout(() => {
+          setFloatingAlerts([]);
+        }, 5000);
       }
     }
   
-    // Guardar si pasa la validación
+    // Guardar si pasa la validación o el usuario confirma
     const result = await editTransaction(editedTransaction.id, editedTransaction);
     if (result.success) {
       setEditingTransaction(null);
@@ -265,8 +403,23 @@ function Wallet() {
    * Elimina una transacción
    */
   const handleDeleteTransaction = async (transactionId) => {
+    // Buscar la transacción que se va a eliminar
+    const transactionToDelete = transactions.find(t => t.id === transactionId);
+    
+    // Verificar si es una transacción de gasto para posiblemente actualizar alertas
+    const needToCheckAlerts = transactionToDelete && 
+                            transactionToDelete.type === "expense" && 
+                            transactionToDelete.category;
+    
+    // Eliminar la transacción
     const result = await deleteTransaction(transactionId);
-    if (!result.success) {
+    
+    if (result.success) {
+      // Si era un gasto, forzar verificación de alertas
+      if (needToCheckAlerts) {
+        setShouldCheckAlerts(true);
+      }
+    } else {
       alert("Error al eliminar la transacción");
     }
   };
@@ -459,7 +612,7 @@ function Wallet() {
         return <div>Selecciona una opción del menú</div>;
     }
   };
-
+  
   // Formatear iniciales del usuario para el avatar
   const getUserInitials = () => {
     if (!userName) return "U";
@@ -484,7 +637,7 @@ function Wallet() {
             {sidebarCollapsed ? '→' : '←'}
           </button>
         </div>
-
+        
         <ul className="sidebar-menu">
           <li className="menu-item">
             <a 
@@ -545,7 +698,7 @@ function Wallet() {
               className={`menu-link ${activeTab === 'reports' ? 'active' : ''}`}
               onClick={() => setActiveTab("reports")}
             >
-              <span className="menu-icon">📈</span>
+              <span className="menu-icon" style={{ color: 'inherit' }}>📈</span>
               <span className="menu-text">Reportes</span>
             </a>
           </li>
@@ -576,18 +729,34 @@ function Wallet() {
             <p className="welcome-subheading">Gestiona tus finanzas de manera inteligente</p>
           </div>
           <div className="header-actions">
-            {getTotalUnreadAlerts() > 0 && (
-              <button className="notification-button">
-                <span>🔔</span>
-                <span className="notification-badge">{getTotalUnreadAlerts()}</span>
-              </button>
-            )}
+            <AlertsDropdown
+              alerts={alertManager.activeAlerts}
+              reminderAlerts={reminderManager.reminderAlerts}
+              markAlertAsRead={alertManager.markAlertAsRead}
+              dismissAlert={alertManager.dismissAlert}
+              markReminderAlertAsRead={reminderManager.markReminderAlertAsRead}
+              dismissReminderAlert={reminderManager.dismissReminderAlert}
+            />
           </div>
         </div>
 
         {/* Contenido dinámico según la pestaña seleccionada */}
         {renderContent()}
       </div>
+
+      {/* Mostrar alertas flotantes cuando sea necesario */}
+      {floatingAlerts.length > 0 && (
+        <AlertDisplay
+          activeAlerts={floatingAlerts}
+          markAlertAsRead={alertManager.markAlertAsRead}
+          dismissAlert={(id) => {
+            console.log("Dismissing floating alert:", id);
+            alertManager.dismissAlert(id);
+            setFloatingAlerts(prev => prev.filter(alert => alert.id !== id));
+          }}
+          isFloating={true}
+        />
+      )}
 
       {/* Modal de edición de transacción */}
       {editingTransaction && (
