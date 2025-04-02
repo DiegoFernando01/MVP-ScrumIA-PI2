@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { FaBell, FaCheckCircle, FaClock, FaAngleDown, FaAngleUp } from "react-icons/fa";
 
 /**
  * Componente para mostrar alertas activas
@@ -29,60 +30,63 @@ const AlertDisplay = ({ activeAlerts, markAlertAsRead, dismissAlert }) => {
   };
 
   return (
-    <div className="mb-6 rounded shadow overflow-hidden">
-      <div className="bg-yellow-100 p-3 border-b border-yellow-200">
-        <h3 className="font-medium text-yellow-800">
-          Alertas ({activeAlerts.length})
+    <div className="alerts-display">
+      <div className="alerts-header">
+        <h3 className="alerts-title">
+          <FaBell /> Alertas <span className="alerts-badge">{activeAlerts.length}</span>
         </h3>
       </div>
 
-      <ul className="divide-y divide-gray-100">
+      <ul className="alerts-list">
         {alertsToShow.map((alert) => (
           <li
             key={alert.id}
-            className={`p-3 ${alert.read ? "bg-white" : "bg-blue-50"}`}
+            className={`alert-item-display ${!alert.read ? "unread" : ""}`}
           >
-            <div className="flex justify-between items-start">
-              <div>
-                <p
-                  className={`${
-                    alert.read ? "text-gray-700" : "font-medium text-black"
-                  }`}
-                >
-                  {alert.message}
-                </p>
-                <p className="text-xs text-gray-500 mt-1">
-                  {formatAlertTime(alert.timestamp)}
-                </p>
+            <div className="alert-content-display">
+              <p className="alert-message-display">
+                {alert.message}
+              </p>
+              <div className="alert-time">
+                <FaClock /> {formatAlertTime(alert.timestamp)}
               </div>
-              <div className="flex space-x-2">
-                {!alert.read && (
-                  <button
-                  onClick={() => handleMarkAsRead(alert.id)}
-                  className="btn-action btn-mark-read hover:text-blue-800"
-                >
-                  Marcar como leída
-                </button>
-                )}
+            </div>
+            
+            <div className="alert-actions">
+              {!alert.read && (
                 <button
-                  onClick={() => handleDismiss(alert.id)}
-                  className="btn-action btn-dismiss hover:text-red-700"
+                  onClick={() => handleMarkAsRead(alert.id)}
+                  className="btn-action btn-mark-read"
                 >
-                  Descartar
+                  <FaCheckCircle /> Marcar como leída
                 </button>
-              </div>
+              )}
+              <button
+                onClick={() => handleDismiss(alert.id)}
+                className="btn-action btn-dismiss"
+              >
+                Descartar
+              </button>
             </div>
           </li>
         ))}
       </ul>
 
       {activeAlerts.length > 3 && (
-        <div className="bg-gray-50 p-2 text-center">
+        <div className="alerts-footer">
           <button
             onClick={() => setShowAll(!showAll)}
-            className="text-sm text-blue-600 hover:text-blue-800"
+            className="alerts-show-more"
           >
-            {showAll ? "Mostrar menos" : `Ver todas (${activeAlerts.length})`}
+            {showAll ? (
+              <>
+                <FaAngleUp /> Mostrar menos
+              </>
+            ) : (
+              <>
+                <FaAngleDown /> Ver todas ({activeAlerts.length})
+              </>
+            )}
           </button>
         </div>
       )}

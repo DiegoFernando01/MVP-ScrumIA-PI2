@@ -319,11 +319,11 @@
 }
 
 .notification-button {
-  background: white;
-  color: #6b7280;
-  border: 1px solid #e2e8f0;
-  width: 40px;
-  height: 40px;
+  background: linear-gradient(135deg, #3056d3, #5c27c3);
+  color: white;
+  border: 2px solid white;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -331,12 +331,15 @@
   position: relative;
   cursor: pointer;
   transition: all 0.3s ease;
+  font-size: 1.3rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 .notification-button:hover {
-  background: #f9fafb;
-  color: #4b5563;
+  background: linear-gradient(135deg, #274ab8, #4f21a6);
+  color: white;
   transform: scale(1.05);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
 }
 
 .notification-badge {
@@ -346,13 +349,16 @@
   background-color: #ff5e5e;
   color: white;
   border-radius: 50%;
-  width: 20px;
-  height: 20px;
+  width: 24px;
+  height: 24px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.7rem;
-  font-weight: 600;
+  font-size: 0.8rem;
+  font-weight: 700;
+  box-shadow: 0 2px 5px rgba(239, 68, 68, 0.3);
+  border: 2px solid white;
+  animation: pulse 2s infinite;
 }
 
 /* Contenedores de tarjetas */
