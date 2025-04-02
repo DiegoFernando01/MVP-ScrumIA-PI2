@@ -1,4 +1,13 @@
 import React, { useState } from "react";
+import { 
+  FaBell,
+  FaPlus, 
+  FaEdit, 
+  FaTrash, 
+  FaExclamationTriangle,
+  FaSave, 
+  FaTimes
+} from "react-icons/fa";
 
 /**
  * Componente para gestionar alertas personalizadas
@@ -109,180 +118,186 @@ const AlertManager = ({
   };
 
   return (
-    <div className="bg-white p-4 rounded shadow">
-      <h2 className="text-lg font-semibold mb-4 text-black">
-        Configuración de Alertas
-      </h2>
+    <div className="alert-manager">
+      <div className="alert-manager-content">
+        {!isEditing ? (
+          <div>
+            <button
+              onClick={handleCreateNew}
+              className="create-alert-btn"
+            >
+              <FaPlus /> Crear Nueva Alerta
+            </button>
 
-      {!isEditing ? (
-        <div>
-          <button
-            onClick={handleCreateNew}
-            className="mb-4 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
-          >
-            Crear Nueva Alerta
-          </button>
-
-          {alertConfigs.length === 0 ? (
-            <p className="text-gray-500 text-sm">No hay alertas configuradas</p>
-          ) : (
-            <ul className="space-y-2">
-              {alertConfigs.map((alert) => (
-                <li key={alert.id} className="p-3 bg-gray-50 rounded border">
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <h3 className="font-medium text-gray-800">
+            {alertConfigs.length === 0 ? (
+              <div className="alert-manager-empty">
+                <div className="alert-manager-empty-icon">
+                  <FaBell />
+                </div>
+                <p>No hay alertas configuradas</p>
+                <p>Crea alertas para recibir notificaciones sobre el estado de tus presupuestos</p>
+              </div>
+            ) : (
+              <ul className="alert-list">
+                {alertConfigs.map((alert) => (
+                  <li key={alert.id} className="alert-list-item">
+                    <div className="alert-list-header">
+                      <h3 className="alert-list-title">
                         {alert.name}
                       </h3>
-                      <p className="text-xs text-gray-500">
-                        {alert.type === "budget"
-                          ? `Alerta de presupuesto al ${alert.criteria.thresholdPercentage}%`
-                          : "Alerta personalizada"}
-                        {alert.criteria.category &&
-                          ` para ${alert.criteria.category}`}
-                      </p>
+                      <div className="alert-list-actions">
+                        <label className="alert-toggle">
+                          <input
+                            type="checkbox"
+                            checked={alert.enabled}
+                            onChange={() =>
+                              handleToggleAlert(alert.id, !alert.enabled)
+                            }
+                            className="alert-toggle-input"
+                          />
+                          <span className="alert-toggle-switch"></span>
+                        </label>
+                        <button
+                          onClick={() => handleSelectAlert(alert)}
+                          className="alert-btn"
+                        >
+                          <FaEdit /> Editar
+                        </button>
+                      </div>
                     </div>
-                    <div className="flex items-center space-x-2">
-                      <label className="inline-flex items-center cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={alert.enabled}
-                          onChange={() =>
-                            handleToggleAlert(alert.id, !alert.enabled)
-                          }
-                          className="sr-only peer"
-                        />
-                        <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                      </label>
-                      <button
-                        onClick={() => handleSelectAlert(alert)}
-                        className="text-sm text-blue-600 hover:text-blue-800"
-                      >
-                        Editar
-                      </button>
-                    </div>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-      ) : (
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block mb-1 text-sm font-medium text-black">
-              Nombre de la alerta
-            </label>
-            <input
-              type="text"
-              name="name"
-              value={formData.name}
-              onChange={handleInputChange}
-              className="w-full px-3 py-2 border rounded text-gray-800"
-              placeholder="Ej: Alerta de presupuesto de comida"
-            />
+                    <p className="alert-list-description">
+                      {alert.type === "budget"
+                        ? `Alerta de presupuesto al ${alert.criteria.thresholdPercentage}%`
+                        : "Alerta personalizada"}
+                      {alert.criteria.category &&
+                        ` para ${alert.criteria.category}`}
+                    </p>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="alert-form">
+            <div className="form-group">
+              <label className="form-label">
+                Nombre de la alerta
+              </label>
+              <input
+                type="text"
+                name="name"
+                value={formData.name}
+                onChange={handleInputChange}
+                className="form-input"
+                placeholder="Ej: Alerta de presupuesto de comida"
+              />
+            </div>
 
-          <div>
-            <label className="block mb-1 text-sm font-medium text-black">
-              Tipo de alerta
-            </label>
-            <select
-              name="type"
-              value={formData.type}
-              onChange={handleInputChange}
-              className="w-full px-3 py-2 border rounded text-gray-800"
-            >
-              <option value="budget">Alerta de presupuesto</option>
-            </select>
-          </div>
-
-          {formData.type === "budget" && (
-            <>
-              <div>
-                <label className="block mb-1 text-sm font-medium text-black">
-                  Categoría (opcional)
-                </label>
-                <select
-                  name="category"
-                  value={formData.category}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border rounded text-gray-800"
-                >
-                  <option value="">Todas las categorías</option>
-                  {categories.map((cat) => (
-                    <option key={cat} value={cat}>
-                      {cat}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block mb-1 text-sm font-medium text-black">
-                  Umbral de alerta (% del presupuesto)
-                </label>
-                <select
-                  name="thresholdPercentage"
-                  value={formData.thresholdPercentage}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border rounded text-gray-800"
-                >
-                  <option value="70">70% del presupuesto</option>
-                  <option value="80">80% del presupuesto</option>
-                  <option value="90">90% del presupuesto</option>
-                  <option value="95">95% del presupuesto</option>
-                  <option value="100">
-                    100% del presupuesto (límite alcanzado)
-                  </option>
-                </select>
-              </div>
-            </>
-          )}
-
-          <div className="flex items-center">
-            <input
-              type="checkbox"
-              name="enabled"
-              checked={formData.enabled}
-              onChange={handleInputChange}
-              className="w-4 h-4 text-blue-600 rounded"
-            />
-            <label className="ml-2 text-sm font-medium text-gray-700">
-              Alerta activada
-            </label>
-          </div>
-
-          {error && <p className="text-red-500 text-xs">{error}</p>}
-
-          <div className="flex gap-2">
-            <button
-              type="submit"
-              className="flex-1 bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition"
-            >
-              {selectedAlert ? "Actualizar" : "Guardar"}
-            </button>
-
-            {selectedAlert && (
-              <button
-                type="button"
-                onClick={handleDelete}
-                className="flex-1 bg-red-500 text-white py-2 rounded hover:bg-red-600 transition"
+            <div className="form-group">
+              <label className="form-label">
+                Tipo de alerta
+              </label>
+              <select
+                name="type"
+                value={formData.type}
+                onChange={handleInputChange}
+                className="form-select"
               >
-                Eliminar
-              </button>
+                <option value="budget">Alerta de presupuesto</option>
+              </select>
+            </div>
+
+            {formData.type === "budget" && (
+              <>
+                <div className="form-group">
+                  <label className="form-label">
+                    Categoría (opcional)
+                  </label>
+                  <select
+                    name="category"
+                    value={formData.category}
+                    onChange={handleInputChange}
+                    className="form-select"
+                  >
+                    <option value="">Todas las categorías</option>
+                    {categories.map((cat) => (
+                      <option key={cat} value={cat}>
+                        {cat}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">
+                    Umbral de alerta (% del presupuesto)
+                  </label>
+                  <select
+                    name="thresholdPercentage"
+                    value={formData.thresholdPercentage}
+                    onChange={handleInputChange}
+                    className="form-select"
+                  >
+                    <option value="70">70% del presupuesto</option>
+                    <option value="80">80% del presupuesto</option>
+                    <option value="90">90% del presupuesto</option>
+                    <option value="95">95% del presupuesto</option>
+                    <option value="100">
+                      100% del presupuesto (límite alcanzado)
+                    </option>
+                  </select>
+                </div>
+              </>
             )}
 
-            <button
-              type="button"
-              onClick={handleCancel}
-              className="flex-1 bg-gray-300 text-gray-800 py-2 rounded hover:bg-gray-400 transition"
-            >
-              Cancelar
-            </button>
-          </div>
-        </form>
-      )}
+            <div className="form-checkbox">
+              <input
+                type="checkbox"
+                name="enabled"
+                checked={formData.enabled}
+                onChange={handleInputChange}
+                id="alert-enabled"
+              />
+              <label htmlFor="alert-enabled">
+                Alerta activada
+              </label>
+            </div>
+
+            {error && (
+              <div className="form-error">
+                <FaExclamationTriangle /> {error}
+              </div>
+            )}
+
+            <div className="form-actions">
+              <button
+                type="submit"
+                className="form-submit"
+              >
+                <FaSave /> {selectedAlert ? "Actualizar" : "Guardar"}
+              </button>
+
+              {selectedAlert && (
+                <button
+                  type="button"
+                  onClick={handleDelete}
+                  className="form-delete"
+                >
+                  <FaTrash /> Eliminar
+                </button>
+              )}
+
+              <button
+                type="button"
+                onClick={handleCancel}
+                className="form-cancel"
+              >
+                <FaTimes /> Cancelar
+              </button>
+            </div>
+          </form>
+        )}
+      </div>
     </div>
   );
 };

@@ -101,7 +101,7 @@ function Login() {
               disabled={loading}
             >
               {loading ? (
-                <span className="loading-spinner">
+                <span className="button-loading-container">
                   <span className="spinner"></span>
                   <span className="loading-text">Iniciando sesión...</span>
                 </span>
