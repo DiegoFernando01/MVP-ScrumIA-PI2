@@ -86,109 +86,128 @@ const EditTransactionModal = ({
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-lg shadow-lg w-full max-w-md mx-auto overflow-hidden">
-        <div className="px-6 py-4 bg-blue-600 text-white">
-          <h3 className="text-lg font-medium">Editar Transacción</h3>
+    <div className="modal-backdrop">
+      <div className="modal-content">
+        <div className="modal-header">
+          <h3 className="modal-title">Editar Transacción</h3>
+          <button className="modal-close" onClick={onCancel}>×</button>
         </div>
+        
+        <div className="modal-body">
+          <form onSubmit={handleSubmit} className="transaction-form">
+            <div className="form-grid">
+              {/* Campo: Monto */}
+              <div className="form-group">
+                <label className="form-label">
+                  Monto <span className="required">*</span>
+                </label>
+                <div className="input-with-icon">
+                  <span className="input-icon">$</span>
+                  <input
+                    type="number"
+                    name="amount"
+                    value={formData.amount}
+                    onChange={handleChange}
+                    className="form-input with-icon"
+                    placeholder="0.00"
+                  />
+                </div>
+                {errors.amount && (
+                  <p className="form-error">{errors.amount}</p>
+                )}
+              </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          {/* Campo: Monto */}
-          <div>
-            <label className="block mb-1 text-sm font-medium text-black">
-              Monto *
-            </label>
-            <input
-              type="number"
-              name="amount"
-              value={formData.amount}
-              onChange={handleChange}
-              className="w-full px-3 py-2 border rounded text-gray-800"
-              placeholder="Ej: 100.00"
-            />
-            {errors.amount && (
-              <p className="text-red-500 text-xs">{errors.amount}</p>
-            )}
-          </div>
+              {/* Campo: Tipo */}
+              <div className="form-group">
+                <label className="form-label">
+                  Tipo <span className="required">*</span>
+                </label>
+                <div className="toggle-container">
+                  <button 
+                    type="button"
+                    className={`toggle-button ${formData.type === 'income' ? 'active income' : ''}`}
+                    onClick={() => handleChange({ target: { name: 'type', value: 'income' } })}
+                  >
+                    <span className="toggle-icon">💰</span>
+                    <span>Ingreso</span>
+                  </button>
+                  <button 
+                    type="button"
+                    className={`toggle-button ${formData.type === 'expense' ? 'active expense' : ''}`}
+                    onClick={() => handleChange({ target: { name: 'type', value: 'expense' } })}
+                  >
+                    <span className="toggle-icon">💸</span>
+                    <span>Gasto</span>
+                  </button>
+                </div>
+              </div>
+            </div>
 
-          {/* Campo: Tipo */}
-          <div>
-            <label className="block mb-1 text-sm font-medium text-black">
-              Tipo *
-            </label>
-            <select
-              name="type"
-              value={formData.type}
-              onChange={handleChange}
-              className="w-full px-3 py-2 border rounded text-gray-800"
-            >
-              <option value="income">Ingreso</option>
-              <option value="expense">Gasto</option>
-            </select>
-          </div>
+            <div className="form-grid">
+              {/* Campo: Fecha */}
+              <div className="form-group">
+                <label className="form-label">
+                  Fecha <span className="required">*</span>
+                </label>
+                <input
+                  type="date"
+                  name="date"
+                  value={formData.date}
+                  onChange={handleChange}
+                  className="form-input"
+                />
+                {errors.date && <p className="form-error">{errors.date}</p>}
+              </div>
 
-          {/* Campo: Fecha */}
-          <div>
-            <label className="block mb-1 text-sm font-medium text-black">
-              Fecha *
-            </label>
-            <input
-              type="date"
-              name="date"
-              value={formData.date}
-              onChange={handleChange}
-              className="w-full px-3 py-2 border rounded text-gray-800"
-            />
-            {errors.date && (
-              <p className="text-red-500 text-xs">{errors.date}</p>
-            )}
-          </div>
+              {/* Campo: Descripción */}
+              <div className="form-group">
+                <label className="form-label">Descripción</label>
+                <input
+                  type="text"
+                  name="description"
+                  value={formData.description}
+                  onChange={handleChange}
+                  className="form-input"
+                  placeholder="Ej: Compra supermercado"
+                />
+              </div>
+            </div>
 
-          {/* Campo: Descripción */}
-          <div>
-            <label className="block mb-1 text-sm font-medium text-black">
-              Descripción
-            </label>
-            <input
-              type="text"
-              name="description"
-              value={formData.description}
-              onChange={handleChange}
-              className="w-full px-3 py-2 border rounded text-gray-800"
-              placeholder="Ej: Compra supermercado"
-            />
-          </div>
+            {/* Campo: Categoría */}
+            <div className="form-group category-group">
+              <CategorySelector
+                formData={formData}
+                handleChange={handleChange}
+                categories={categories}
+                newCategoryInput={newCategoryInput}
+                setNewCategoryInput={setNewCategoryInput}
+                showNewCategoryInput={showNewCategoryInput}
+                setShowNewCategoryInput={setShowNewCategoryInput}
+                addNewCategory={addNewCategory}
+                errors={errors}
+              />
+            </div>
 
-          {/* Campo: Categoría */}
-          <CategorySelector
-            formData={formData}
-            handleChange={handleChange}
-            categories={categories}
-            newCategoryInput={newCategoryInput}
-            setNewCategoryInput={setNewCategoryInput}
-            showNewCategoryInput={showNewCategoryInput}
-            setShowNewCategoryInput={setShowNewCategoryInput}
-            addNewCategory={addNewCategory}
-            errors={errors}
-          />
-
-          {/* Botones de acción */}
-          <div className="flex gap-2 pt-4">
-            <button
-              type="submit"
-              className="flex-1 bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition"
-            >
-              Guardar Cambios
-            </button>
-            <button
-              type="button"
-              onClick={onCancel}
-              className="flex-1 bg-gray-300 text-gray-800 py-2 rounded hover:bg-gray-400 transition"
-            >
-              Cancelar
-            </button>
-          </div>
-        </form>
+            {/* Botones de acción */}
+            <div className="form-actions">
+              <button
+                type="submit"
+                className="btn btn-primary"
+              >
+                <span className="btn-icon">✓</span>
+                Guardar Cambios
+              </button>
+              <button
+                type="button"
+                onClick={onCancel}
+                className="btn btn-secondary"
+              >
+                <span className="btn-icon">✕</span>
+                Cancelar
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   );
