@@ -136,45 +136,89 @@ useEffect(() => {
       };
     }
 
+    // Verificar que tenemos transacciones para evaluar
+    if (!transactions || transactions.length === 0) {
+      console.log(`⚠️ No hay transacciones para evaluar en ${category}`);
+      return {
+        hasbudget: true,
+        totalExpenses: 0,
+        budgetAmount: budget.amount,
+        percentage: 0,
+        isOverBudget: false,
+        isApproachingLimit: false,
+      };
+    }
+
     // Filtrar transacciones por categoría y tipo (solo gastos) del mes actual
     const { month, year } = getCurrentMonthYear();
-
-    transactions.forEach((t) => {
-      const transDate = new Date(t.date);
-      console.log(`→ Revisando transacción:`, {
-        category: t.category,
-        amount: t.amount,
-        date: t.date,
-        parsedMonth: transDate.getMonth() + 1,
-        parsedYear: transDate.getFullYear(),
-        matches: t.category === category &&
-                 t.type === "expense" &&
-                 transDate.getMonth() + 1 === month &&
-                 transDate.getFullYear() === year
-      });
-    });
+    
+    console.log(`🔎 Calculando presupuesto para ${category}, mes ${month}/${year}, evaluando ${transactions.length} transacciones`);
+    
+    // Formatear la fecha actual para comparar (primer día del mes)
+    const currentMonthStart = new Date(year, month - 1, 1);
+    // Último día del mes
+    const currentMonthEnd = new Date(year, month, 0);
     
     const relevantTransactions = transactions.filter((t) => {
-      const transDate = new Date(`${t.date}T00:00:00`);
+      // Verificar que la transacción tenga todos los campos necesarios
+      if (!t || !t.category || !t.type || !t.amount || !t.date) {
+        console.log("⚠️ Transacción con datos incompletos:", t);
+        return false;
+      }
+      
+      // Convertir la fecha de string a objeto Date con manejo de errores
+      let transDate;
+      try {
+        // Asegurar que la fecha se parsee correctamente
+        // Primero intentar ISO format (YYYY-MM-DD)
+        if (t.date.includes("-")) {
+          const [year, month, day] = t.date.split("-").map(Number);
+          transDate = new Date(year, month - 1, day);
+        } else if (t.date.includes("/")) {
+          // Intentar formato DD/MM/YYYY
+          const [day, month, year] = t.date.split("/").map(Number);
+          transDate = new Date(year, month - 1, day);
+        } else {
+          // Último recurso: parseo directo
+          transDate = new Date(t.date);
+        }
+        
+        if (isNaN(transDate.getTime())) {
+          console.log(`⚠️ Fecha inválida en transacción: ${t.date}`);
+          return false;
+        }
+      } catch (error) {
+        console.log(`⚠️ Error al parsear fecha: ${t.date}`, error);
+        return false;
+      }
+      
+      // Una transacción es relevante si:
+      // 1. Es de la misma categoría
+      // 2. Es un gasto
+      // 3. Es del mismo mes y año (entre el primer y último día del mes)
       const match = (
         t.category === category &&
         t.type === "expense" &&
-        t.userId === auth.currentUser?.uid &&
-        transDate.getMonth() + 1 === month &&
-        transDate.getFullYear() === year
+        transDate >= currentMonthStart &&
+        transDate <= currentMonthEnd
       );
-    
-      console.log("🔍 Evaluando:", {
-        category: t.category,
-        type: t.type,
-        date: t.date,
-        parsedMonth: transDate.getMonth() + 1,
-        parsedYear: transDate.getFullYear(),
-        match
-      });
-    
+      
+      if (t.category === category && t.type === "expense") {
+        console.log(`🧮 Transacción: $${t.amount} (${t.date}) - Mes comparado: ${transDate.getMonth() + 1}/${transDate.getFullYear()} vs Actual: ${month}/${year} - ¿Coincide? ${match ? 'Sí' : 'No'}`);
+      }
+      
       return match;
     });
+    
+    console.log(`✅ Encontradas ${relevantTransactions.length} transacciones relevantes para ${category} en ${month}/${year}`);
+    
+    // Si encontramos transacciones relevantes, mostrar detalles para depuración
+    if (relevantTransactions.length > 0) {
+      relevantTransactions.forEach(t => {
+        console.log(`💵 Transacción incluida: $${t.amount} (${t.date})`);
+      });
+    }
+    
     // Calcular gastos totales
     const totalExpenses = relevantTransactions.reduce(
       (sum, t) => sum + Number(t.amount),
@@ -183,6 +227,8 @@ useEffect(() => {
 
     // Calcular porcentaje de uso
     const percentage = (totalExpenses / budget.amount) * 100;
+    
+    console.log(`💰 Presupuesto para ${category}: $${budget.amount}, Gastos: $${totalExpenses}, Porcentaje: ${percentage.toFixed(1)}%`);
 
     return {
       hasbudget: true,
