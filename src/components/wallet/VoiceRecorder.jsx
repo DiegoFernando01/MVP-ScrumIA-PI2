@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { FaMicrophone, FaStop, FaTrash, FaPause, FaPlay, FaDownload } from "react-icons/fa";
+import { FaMicrophone, FaStop, FaTrash, FaPause, FaPlay, FaPaperPlane } from "react-icons/fa";
 
 /**
  * Componente para la grabación y visualización de audio
@@ -11,6 +11,8 @@ const VoiceRecorder = () => {
   const [recordingTime, setRecordingTime] = useState(0);
   const [audioURL, setAudioURL] = useState("");
   const [visualizerData, setVisualizerData] = useState(Array(20).fill(5));
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [transcriptionResult, setTranscriptionResult] = useState("");
   
   const dropdownRef = useRef(null);
   const timerRef = useRef(null);
@@ -99,7 +101,20 @@ const VoiceRecorder = () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       
-      const mediaRecorder = new MediaRecorder(stream);
+      // Usamos audio/webm con codificación de audio compatible con el navegador
+      const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus') 
+          ? 'audio/webm;codecs=opus' 
+          : MediaRecorder.isTypeSupported('audio/webm')
+              ? 'audio/webm'
+              : 'audio/mp4';
+      
+      console.log(`Usando formato de grabación: ${mimeType}`);
+      
+      const mediaRecorder = new MediaRecorder(stream, {
+        mimeType: mimeType,
+        audioBitsPerSecond: 16000 // Tasa de bits adecuada para transcripción
+      });
+      
       mediaRecorderRef.current = mediaRecorder;
       audioChunksRef.current = [];
       
@@ -113,6 +128,8 @@ const VoiceRecorder = () => {
         const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/wav' });
         const url = URL.createObjectURL(audioBlob);
         setAudioURL(url);
+        // Aquí puedes agregar lógica adicional para manejar la grabación finalizada, como mostrar un mensaje o habilitar el botón de descarga.
+        
       };
       
       mediaRecorder.start();
@@ -164,17 +181,85 @@ const VoiceRecorder = () => {
     }
     
     setRecordingTime(0);
+    setTranscriptionResult("");
   };
   
-  // Descargar grabación
-  const downloadRecording = () => {
-    // if (audioURL) {
-    //   const a = document.createElement("a");
-    //   a.href = audioURL;
-    //   a.download = `grabacion_${new Date().toISOString()}.wav`;
-    //   a.click();
-    // }
+  // Procesar audio con Azure
+  const processAudio = async () => {
+    if (!audioURL) return;
     
+    try {
+      setIsProcessing(true);
+      
+      // Obtener el blob de audio desde la URL
+      const response = await fetch(audioURL);
+      const audioBlob = await response.blob();
+      
+      console.log('Audio BLOB:', {
+        type: audioBlob.type,
+        size: audioBlob.size,
+        lastModified: audioBlob.lastModified
+      });
+      
+      // Mostrar mensaje mientras se procesa
+      setTranscriptionResult("Procesando audio...");
+      
+      // Crear FormData
+      const formData = new FormData();
+      formData.append('audio', audioBlob);
+      formData.append('audioType', audioBlob.type); // Incluir el tipo MIME para ayudar al servidor
+      
+      // Usar XMLHttpRequest para mejor manejo de FormData
+      return new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', '/api/transcribe', true);
+        
+        xhr.onload = function() {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            try {
+              const result = JSON.parse(xhr.responseText);
+              console.log('Resultado de la transcripción:', result);
+              setTranscriptionResult(result.text || "No se detectó texto en el audio");
+              setIsProcessing(false);
+              resolve();
+            } catch (e) {
+              console.error("Error al parsear respuesta:", e);
+              setTranscriptionResult("Error al procesar el audio: " + e.message);
+              setIsProcessing(false);
+              reject(e);
+            }
+          } else {
+            console.error('Error response:', xhr.responseText);
+            setTranscriptionResult(`Error al procesar el audio: ${xhr.status}. Intenta una grabación más corta y clara.`);
+            setIsProcessing(false);
+            reject(new Error(`Error HTTP ${xhr.status}`));
+          }
+        };
+        
+        xhr.onerror = function() {
+          console.error("Error de red en la solicitud XHR");
+          setTranscriptionResult("Error de red al enviar el audio. Verifica tu conexión.");
+          setIsProcessing(false);
+          reject(new Error("Error de red"));
+        };
+        
+        xhr.upload.onprogress = function(event) {
+          if (event.lengthComputable) {
+            const percentComplete = Math.round((event.loaded / event.total) * 100);
+            console.log(`Progreso de subida: ${percentComplete}%`);
+            // Opcional: actualizar una barra de progreso
+          }
+        };
+        
+        // Enviar la solicitud
+        xhr.send(formData);
+      });
+      
+    } catch (error) {
+      console.error("Error al procesar el audio:", error);
+      setTranscriptionResult("Error al procesar el audio: " + error.message);
+      setIsProcessing(false);
+    }
   };
   
   return (
@@ -248,13 +333,20 @@ const VoiceRecorder = () => {
               <div className="recording-playback">
                 <audio controls className="audio-player" src={audioURL}></audio>
                 
+                {transcriptionResult && (
+                  <div className="transcription-result">
+                    <p><strong>Transcripción:</strong> {transcriptionResult}</p>
+                  </div>
+                )}
+                
                 <div className="voice-recorder-actions">
                   <button 
-                    onClick={downloadRecording}
-                    className="recorder-btn download"
-                    title="Descargar grabación"
+                    onClick={processAudio}
+                    className="recorder-btn process"
+                    title="Procesar audio"
+                    disabled={isProcessing}
                   >
-                    <FaDownload /> Descargar
+                    <FaPaperPlane /> {isProcessing ? 'Procesando...' : 'Procesar'}
                   </button>
                   
                   <button 

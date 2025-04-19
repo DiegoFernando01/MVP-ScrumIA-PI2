@@ -1127,6 +1127,15 @@
   transform: translateY(-1px);
 }
 
+.recorder-btn.process {
+  background: linear-gradient(135deg, #3056d3, #2563eb);
+}
+
+.recorder-btn.process:hover {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  transform: translateY(-1px);
+}
+
 .empty-recorder {
   display: flex;
   flex-direction: column;
