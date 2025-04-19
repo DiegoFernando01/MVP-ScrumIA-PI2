@@ -10,6 +10,7 @@ import AlertManager from "../components/wallet/AlertManager";
 import ReminderManager from "../components/wallet/ReminderManager";
 import AlertDisplay from "../components/wallet/AlertDisplay";
 import AlertsDropdown from "../components/wallet/AlertsDropdown";
+import VoiceRecorder from "../components/wallet/VoiceRecorder";
 import useCategories from "../hooks/useCategories";
 import useTransactionFilters from "../hooks/useTransactionFilters";
 import useBudgets from "../hooks/useBudgets";
@@ -737,6 +738,7 @@ function Wallet() {
               markReminderAlertAsRead={reminderManager.markReminderAlertAsRead}
               dismissReminderAlert={reminderManager.dismissReminderAlert}
             />
+            <VoiceRecorder />
           </div>
         </div>
 
