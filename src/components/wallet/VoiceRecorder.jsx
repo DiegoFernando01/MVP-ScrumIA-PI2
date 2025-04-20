@@ -108,8 +108,6 @@ const VoiceRecorder = () => {
               ? 'audio/webm'
               : 'audio/mp4';
       
-      console.log(`Usando formato de grabación: ${mimeType}`);
-      
       const mediaRecorder = new MediaRecorder(stream, {
         mimeType: mimeType,
         audioBitsPerSecond: 16000 // Tasa de bits adecuada para transcripción
@@ -128,8 +126,6 @@ const VoiceRecorder = () => {
         const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/wav' });
         const url = URL.createObjectURL(audioBlob);
         setAudioURL(url);
-        // Aquí puedes agregar lógica adicional para manejar la grabación finalizada, como mostrar un mensaje o habilitar el botón de descarga.
-        
       };
       
       mediaRecorder.start();
@@ -137,10 +133,7 @@ const VoiceRecorder = () => {
       setIsPaused(false);
       setRecordingTime(0);
       
-      // La animación se inicia automáticamente por el useEffect
-      
     } catch (error) {
-      console.error("Error al iniciar la grabación:", error);
       alert("No se pudo acceder al micrófono. Por favor, asegúrate de dar permiso para usar el micrófono.");
     }
   };
@@ -195,12 +188,6 @@ const VoiceRecorder = () => {
       const response = await fetch(audioURL);
       const audioBlob = await response.blob();
       
-      console.log('Audio BLOB:', {
-        type: audioBlob.type,
-        size: audioBlob.size,
-        lastModified: audioBlob.lastModified
-      });
-      
       // Mostrar mensaje mientras se procesa
       setTranscriptionResult("Procesando audio...");
       
@@ -218,18 +205,15 @@ const VoiceRecorder = () => {
           if (xhr.status >= 200 && xhr.status < 300) {
             try {
               const result = JSON.parse(xhr.responseText);
-              console.log('Resultado de la transcripción:', result);
               setTranscriptionResult(result.text || "No se detectó texto en el audio");
               setIsProcessing(false);
               resolve();
             } catch (e) {
-              console.error("Error al parsear respuesta:", e);
               setTranscriptionResult("Error al procesar el audio: " + e.message);
               setIsProcessing(false);
               reject(e);
             }
           } else {
-            console.error('Error response:', xhr.responseText);
             setTranscriptionResult(`Error al procesar el audio: ${xhr.status}. Intenta una grabación más corta y clara.`);
             setIsProcessing(false);
             reject(new Error(`Error HTTP ${xhr.status}`));
@@ -237,18 +221,9 @@ const VoiceRecorder = () => {
         };
         
         xhr.onerror = function() {
-          console.error("Error de red en la solicitud XHR");
           setTranscriptionResult("Error de red al enviar el audio. Verifica tu conexión.");
           setIsProcessing(false);
           reject(new Error("Error de red"));
-        };
-        
-        xhr.upload.onprogress = function(event) {
-          if (event.lengthComputable) {
-            const percentComplete = Math.round((event.loaded / event.total) * 100);
-            console.log(`Progreso de subida: ${percentComplete}%`);
-            // Opcional: actualizar una barra de progreso
-          }
         };
         
         // Enviar la solicitud
@@ -256,7 +231,6 @@ const VoiceRecorder = () => {
       });
       
     } catch (error) {
-      console.error("Error al procesar el audio:", error);
       setTranscriptionResult("Error al procesar el audio: " + error.message);
       setIsProcessing(false);
     }

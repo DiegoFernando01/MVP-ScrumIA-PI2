@@ -135,7 +135,6 @@ function Wallet() {
 
       // Solo marcar para revisar alertas si no es la carga inicial
       if (!isInitialRender) {
-        console.log("Transaction changes detected, should check alerts");
         setShouldCheckAlerts(true);
       } else {
         setIsInitialRender(false);
@@ -147,16 +146,11 @@ function Wallet() {
 
   // Función para verificar alertas de manera segura
   const checkAlertsIfNeeded = useCallback(() => {
-    console.log("checkAlertsIfNeeded called:", { shouldCheck: shouldCheckAlerts, transactionsCount: transactions.length });
-    
     if (!shouldCheckAlerts || transactions.length === 0) return;
     
     // Comprobar alertas de presupuesto
     const expenseCategories = categoryManager.predefinedCategories.expense;
     const previousAlertCount = alertManager.activeAlerts.length;
-    
-    console.log("Current active alerts:", alertManager.activeAlerts);
-    console.log("Previous alert count:", previousAlertCount);
     
     // Actualizar todas las alertas de presupuesto
     alertManager.resetBudgetAlerts(); // Limpia alertas de presupuesto existentes
@@ -165,16 +159,13 @@ function Wallet() {
     );
     
     // Si se generaron nuevas alertas, mostrarlas como flotantes
-    console.log("After check, active alerts:", alertManager.activeAlerts);
     const hasNewAlerts = alertManager.activeAlerts.length > previousAlertCount;
     
-    console.log("Has new alerts:", hasNewAlerts);
     if (hasNewAlerts) {
       const newAlerts = alertManager.activeAlerts.slice(
         Math.max(0, previousAlertCount)
       );
       
-      console.log("New floating alerts to display:", newAlerts);
       setFloatingAlerts(newAlerts);
       
       // Configurar un temporizador para ocultar las alertas flotantes después de 5 segundos
@@ -189,7 +180,6 @@ function Wallet() {
 
   // Efecto separado para manejar comprobación de alertas
   useEffect(() => {
-    console.log("Effect triggered for checkAlertsIfNeeded");
     checkAlertsIfNeeded();
   }, [checkAlertsIfNeeded]);
 
@@ -247,7 +237,6 @@ function Wallet() {
     
     if (formData.type === "expense" && formData.category) {
       const usage = budgetManager.calculateBudgetUsage(formData.category, transactions);
-      console.log(`Budget check for new transaction in ${formData.category}:`, usage);
       
       if (usage.hasbudget) {
         const nuevoTotal = usage.totalExpenses + Number(formData.amount);
@@ -262,7 +251,6 @@ function Wallet() {
     
     // Guardar la transacción 
     const result = await createTransaction(formData);
-    console.log("Transaction created:", result);
     
     // Si era un gasto que excede presupuesto, mostrar alerta flotante inmediatamente
     if (willExceedBudget) {
@@ -275,7 +263,6 @@ function Wallet() {
         read: false
       };
       
-      console.log("Creating immediate budget exceeded alert:", newAlert);
       setFloatingAlerts([newAlert]);
       
       // Limpiar la alerta después de 5 segundos
@@ -752,7 +739,6 @@ function Wallet() {
           activeAlerts={floatingAlerts}
           markAlertAsRead={alertManager.markAlertAsRead}
           dismissAlert={(id) => {
-            console.log("Dismissing floating alert:", id);
             alertManager.dismissAlert(id);
             setFloatingAlerts(prev => prev.filter(alert => alert.id !== id));
           }}
