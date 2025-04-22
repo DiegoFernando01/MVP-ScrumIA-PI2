@@ -26,6 +26,7 @@ const VoiceRecorder = ({ onIntentDetected }) => {
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
   const visualizerTimerRef = useRef(null);
+  const autoCloseTimerRef = useRef(null);
   
   // Cerrar dropdown al hacer clic fuera
   useEffect(() => {
@@ -47,9 +48,25 @@ const VoiceRecorder = ({ onIntentDetected }) => {
       if (timerRef.current) clearInterval(timerRef.current);
       if (visualizerTimerRef.current) clearInterval(visualizerTimerRef.current);
       if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
+      if (autoCloseTimerRef.current) clearTimeout(autoCloseTimerRef.current);
       if (audioURL) URL.revokeObjectURL(audioURL);
     };
   }, [audioURL]);
+
+  // Auto-cierre después de ejecutar una acción exitosa
+  useEffect(() => {
+    if (intentExecuted && intentActionResult && intentActionResult.success) {
+      // Esperar 3 segundos para mostrar el resultado antes de cerrar
+      autoCloseTimerRef.current = setTimeout(() => {
+        resetRecorderState();
+        setIsOpen(false);
+      }, 3000);
+    }
+    
+    return () => {
+      if (autoCloseTimerRef.current) clearTimeout(autoCloseTimerRef.current);
+    };
+  }, [intentExecuted, intentActionResult]);
   
   // Gestionar tiempo de grabación
   useEffect(() => {
@@ -100,6 +117,36 @@ const VoiceRecorder = ({ onIntentDetected }) => {
       Math.max(5, Math.min(60, Math.random() * 55 + 5))
     );
     setVisualizerData(newData);
+  };
+
+  // Función para resetear completamente el estado del grabador
+  const resetRecorderState = () => {
+    if (audioURL) {
+      URL.revokeObjectURL(audioURL);
+    }
+    
+    setAudioURL("");
+    setRecordingTime(0);
+    setTranscriptionResult("");
+    setLanguageProcessingResult(null);
+    setIntentActionResult(null);
+    setIntentExecuted(false);
+    setIsRecording(false);
+    setIsPaused(false);
+    
+    // Asegurarse de que todos los temporizadores estén detenidos
+    if (timerRef.current) clearInterval(timerRef.current);
+    if (visualizerTimerRef.current) clearInterval(visualizerTimerRef.current);
+    if (autoCloseTimerRef.current) clearTimeout(autoCloseTimerRef.current);
+    
+    // Detener el MediaRecorder si todavía está activo
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+      mediaRecorderRef.current.stop();
+      
+      if (mediaRecorderRef.current.stream) {
+        mediaRecorderRef.current.stream.getTracks().forEach(track => track.stop());
+      }
+    }
   };
   
   // Iniciar grabación
@@ -176,16 +223,7 @@ const VoiceRecorder = ({ onIntentDetected }) => {
   
   // Descartar grabación
   const discardRecording = () => {
-    if (audioURL) {
-      URL.revokeObjectURL(audioURL);
-      setAudioURL("");
-    }
-    
-    setRecordingTime(0);
-    setTranscriptionResult("");
-    setLanguageProcessingResult(null);
-    setIntentActionResult(null);
-    setIntentExecuted(false);
+    resetRecorderState();
   };
   
   // Procesar audio con Azure
@@ -446,7 +484,7 @@ const VoiceRecorder = ({ onIntentDetected }) => {
                 
                 {languageProcessingResult && (
                   <div className="language-processing-result">
-                    <p><strong>Intención detectada:</strong> {languageProcessingResult.intent}</p>
+                    <p><strong>Intención:</strong> {languageProcessingResult.intent}</p>
                     {languageProcessingResult.entities && languageProcessingResult.entities.length > 0 && (
                       <div className="entities-list">
                         <p><strong>Entidades:</strong></p>
@@ -471,12 +509,6 @@ const VoiceRecorder = ({ onIntentDetected }) => {
                       >
                         <FaCheck /> Ejecutar acción
                       </button>
-                    )}
-                    
-                    {intentActionResult && (
-                      <div className={`intent-action-result ${intentActionResult.success ? 'success' : 'error'}`}>
-                        <p><strong>{intentActionResult.success ? 'Acción ejecutada:' : 'Error:'}</strong> {intentActionResult.message}</p>
-                      </div>
                     )}
                   </div>
                 )}

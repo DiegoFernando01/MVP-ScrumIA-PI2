@@ -14,8 +14,14 @@ const TransactionItem = ({
   // Formatear fecha para mostrar
   const formatDate = (dateString) => {
     if (!dateString) return "Sin fecha";
-    const date = new Date(dateString);
-    return date.toLocaleDateString("es-ES", {
+    
+    // Solución mejorada al problema de zona horaria
+    // Crear un array de la fecha [año, mes, día] y luego usar estos valores para construir la fecha
+    // El mes viene 0-indexado en el constructor Date, por eso restamos 1
+    const [year, month, day] = dateString.split('-');
+    const formattedDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day), 12);
+    
+    return formattedDate.toLocaleDateString("es-ES", {
       year: "numeric",
       month: "short",
       day: "numeric",

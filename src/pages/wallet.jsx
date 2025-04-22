@@ -300,11 +300,11 @@ function Wallet() {
           if (result.success) {
             // Mensaje de éxito con formato claro y detallado
             const amount = parseFloat(newFormData.amount);
-            const formattedAmount = new Intl.NumberFormat('es-ES', { 
+            const formattedAmount = new Intl.NumberFormat('es-CO', { 
               style: 'currency', 
-              currency: 'EUR',
+              currency: 'COP',
               minimumFractionDigits: 0, 
-              maximumFractionDigits: 2 
+              maximumFractionDigits: 0 
             }).format(amount);
             
             setVoiceMessage({
