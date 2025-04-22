@@ -13,15 +13,12 @@ const useAlerts = () => {
 
   // Cargar configuraciones guardadas al iniciar
   useEffect(() => {
-    console.log("useAlerts: Loading saved configurations");
     const savedConfigs = localStorage.getItem("alertConfigurations");
     if (savedConfigs) {
       try {
         const parsedConfigs = JSON.parse(savedConfigs);
-        console.log("useAlerts: Loaded configs from localStorage:", parsedConfigs);
         setAlertConfigs(parsedConfigs);
       } catch (error) {
-        console.error("Error parsing alert configurations:", error);
         setAlertConfigs([]);
       }
     } else {
@@ -37,7 +34,6 @@ const useAlerts = () => {
           enabled: true,
         },
       ];
-      console.log("useAlerts: Setting default config:", defaultConfig);
       setAlertConfigs(defaultConfig);
     }
 
@@ -46,10 +42,8 @@ const useAlerts = () => {
     if (savedAlerts) {
       try {
         const parsedAlerts = JSON.parse(savedAlerts);
-        console.log("useAlerts: Loaded active alerts from localStorage:", parsedAlerts);
         setActiveAlerts(parsedAlerts);
       } catch (error) {
-        console.error("Error parsing active alerts:", error);
         setActiveAlerts([]);
       }
     }
@@ -57,13 +51,11 @@ const useAlerts = () => {
 
   // Guardar configuraciones cuando cambian
   useEffect(() => {
-    console.log("useAlerts: Saving alert configurations to localStorage:", alertConfigs);
     localStorage.setItem("alertConfigurations", JSON.stringify(alertConfigs));
   }, [alertConfigs]);
 
   // Guardar alertas activas cuando cambian
   useEffect(() => {
-    console.log("useAlerts: Saving active alerts to localStorage:", activeAlerts);
     localStorage.setItem("activeAlerts", JSON.stringify(activeAlerts));
   }, [activeAlerts]);
 
@@ -81,7 +73,6 @@ const useAlerts = () => {
 
     if (existingIndex >= 0) {
       // Actualizar existente
-      console.log(`useAlerts: Updating existing alert config: ${newId}`, newConfig);
       setAlertConfigs(prevConfigs => {
         const updatedConfigs = [...prevConfigs];
         updatedConfigs[existingIndex] = newConfig;
@@ -89,7 +80,6 @@ const useAlerts = () => {
       });
     } else {
       // Agregar nueva
-      console.log(`useAlerts: Adding new alert config: ${newId}`, newConfig);
       setAlertConfigs(prevConfigs => [...prevConfigs, newConfig]);
     }
 
@@ -102,7 +92,6 @@ const useAlerts = () => {
    * @returns {boolean} Indica si la operación fue exitosa
    */
   const removeAlertConfig = useCallback((alertId) => {
-    console.log(`useAlerts: Removing alert config: ${alertId}`);
     let configFound = false;
     
     setAlertConfigs(prevConfigs => {
@@ -115,15 +104,12 @@ const useAlerts = () => {
     });
 
     if (!configFound) {
-      console.log(`useAlerts: Alert config not found: ${alertId}`);
       return false;
     }
 
     // También eliminar cualquier alerta activa relacionada
     setActiveAlerts(prevAlerts => {
       const filteredAlerts = prevAlerts.filter((a) => a.configId !== alertId);
-      const removedCount = prevAlerts.length - filteredAlerts.length;
-      console.log(`useAlerts: Removed ${removedCount} active alerts associated with config ${alertId}`);
       return filteredAlerts;
     });
 
@@ -137,7 +123,6 @@ const useAlerts = () => {
    * @returns {boolean} Indica si la operación fue exitosa
    */
   const toggleAlertConfig = useCallback((alertId, enabled) => {
-    console.log(`useAlerts: Toggling alert config ${alertId} to ${enabled}`);
     let success = false;
     
     setAlertConfigs(prevConfigs => {
@@ -159,12 +144,10 @@ const useAlerts = () => {
    * para que puedan ser recalculadas
    */
   const resetBudgetAlerts = useCallback(() => {
-    console.log("useAlerts: Resetting all budget alerts");
     setActiveAlerts(prevAlerts => {
       const filtered = prevAlerts.filter(alert => 
         alert.type !== 'budget' && alert.type !== 'budget-exceeded'
       );
-      console.log(`useAlerts: Removed ${prevAlerts.length - filtered.length} budget alerts`);
       return filtered;
     });
   }, []);
@@ -175,16 +158,12 @@ const useAlerts = () => {
    * @param {Function} budgetCalculator - Función para calcular uso del presupuesto
    */
   const checkBudgetAlerts = useCallback((categories, budgetCalculator) => {
-    console.log("useAlerts: Checking budget alerts for categories:", categories);
     // Obtener configuraciones de alertas de presupuesto activas
     const budgetAlerts = alertConfigs.filter(
       (a) => a.type === "budget" && a.enabled
     );
-
-    console.log(`useAlerts: Found ${budgetAlerts.length} active budget alert configurations`);
     
     if (budgetAlerts.length === 0) {
-      console.log("useAlerts: No budget alert configurations enabled");
       return;
     }
 
@@ -194,7 +173,6 @@ const useAlerts = () => {
     // Evaluar cada categoría
     categories.forEach((category) => {
       const usage = budgetCalculator(category);
-      console.log(`useAlerts: Category ${category} usage:`, usage);
 
       // Si tiene presupuesto y hay alertas configuradas
       if (usage.hasbudget) {
@@ -219,10 +197,7 @@ const useAlerts = () => {
                 timestamp: new Date().toISOString(),
                 read: false,
               };
-              console.log("useAlerts: Creating new threshold alert:", newAlert);
               newAlerts.push(newAlert);
-            } else {
-              console.log(`useAlerts: Threshold alert already exists for ${category}`);
             }
           }
 
@@ -245,23 +220,15 @@ const useAlerts = () => {
                 timestamp: new Date().toISOString(),
                 read: false,
               };
-              console.log("useAlerts: Creating new exceeded alert:", newAlert);
               newAlerts.push(newAlert);
-            } else {
-              console.log(`useAlerts: Budget exceeded alert already exists for ${category}`);
             }
           }
         });
-      } else {
-        console.log(`useAlerts: Category ${category} has no budget set`);
       }
     });
 
     if (newAlerts.length > 0) {
-      console.log(`useAlerts: Adding ${newAlerts.length} new alerts:`, newAlerts);
       setActiveAlerts(prevAlerts => [...prevAlerts, ...newAlerts]);
-    } else {
-      console.log("useAlerts: No new alerts to add");
     }
   }, [alertConfigs, activeAlerts]);
 
@@ -270,13 +237,10 @@ const useAlerts = () => {
    * @param {string} alertId - ID de la alerta
    */
   const markAlertAsRead = useCallback((alertId) => {
-    console.log(`useAlerts: Marking alert as read: ${alertId}`);
     setActiveAlerts(prevAlerts => {
       const updated = prevAlerts.map((alert) =>
         alert.id === alertId ? { ...alert, read: true } : alert
       );
-      const wasUpdated = JSON.stringify(updated) !== JSON.stringify(prevAlerts);
-      console.log(`useAlerts: Alert updated: ${wasUpdated}`);
       return updated;
     });
   }, []);
@@ -286,11 +250,8 @@ const useAlerts = () => {
    * @param {string} alertId - ID de la alerta
    */
   const dismissAlert = useCallback((alertId) => {
-    console.log(`useAlerts: Dismissing alert: ${alertId}`);
     setActiveAlerts(prevAlerts => {
       const filtered = prevAlerts.filter((alert) => alert.id !== alertId);
-      const wasRemoved = filtered.length < prevAlerts.length;
-      console.log(`useAlerts: Alert removed: ${wasRemoved}`);
       return filtered;
     });
   }, []);
@@ -299,31 +260,8 @@ const useAlerts = () => {
    * Obtiene el conteo de alertas no leídas
    */
   const getUnreadCount = useCallback(() => {
-    const count = activeAlerts.filter((a) => !a.read).length;
-    console.log(`useAlerts: Unread alerts count: ${count} out of ${activeAlerts.length} total`);
-    return count;
+    return activeAlerts.filter((a) => !a.read).length;
   }, [activeAlerts]);
-
-  /**
-   * Función para crear una alerta de prueba
-   * @returns {string} ID de la alerta creada
-   */
-  const createTestAlert = useCallback(() => {
-    const testAlertId = `test-alert-${Date.now()}`;
-    const testAlert = {
-      id: testAlertId,
-      type: 'test',
-      category: 'General',
-      message: 'Esta es una alerta de prueba para verificar el sistema de notificaciones.',
-      timestamp: new Date().toISOString(),
-      read: false,
-      configId: 'test-config'
-    };
-    
-    console.log("Creating test alert:", testAlert);
-    setActiveAlerts(prevAlerts => [...prevAlerts, testAlert]);
-    return testAlertId;
-  }, []);
 
   return {
     alertConfigs,
@@ -336,7 +274,6 @@ const useAlerts = () => {
     markAlertAsRead,
     dismissAlert,
     getUnreadCount,
-    createTestAlert,  // Método de prueba para crear una alerta manualmente
   };
 };
 

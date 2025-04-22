@@ -15,14 +15,6 @@ const AlertsDropdown = ({
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
   
-  // Log para depuración
-  console.log("AlertsDropdown rendered with:", { 
-    alertsCount: Array.isArray(alerts) ? alerts.length : 'not an array', 
-    reminderAlertsCount: Array.isArray(reminderAlerts) ? reminderAlerts.length : 'not an array',
-    alerts,
-    reminderAlerts
-  });
-  
   // Asegurar que alertas y reminderAlerts sean arrays, incluso si son undefined
   const safeAlerts = Array.isArray(alerts) ? alerts : [];
   const safeReminderAlerts = Array.isArray(reminderAlerts) ? reminderAlerts : [];
@@ -61,7 +53,6 @@ const AlertsDropdown = ({
   
   // Manejar acciones de alertas
   const handleAlertAction = (alert, action) => {
-    console.log("Alert action triggered:", { alert, action });
     if (alert.isReminder) {
       if (action === 'read') markReminderAlertAsRead(alert.id);
       else if (action === 'dismiss') dismissReminderAlert(alert.id);
@@ -76,9 +67,6 @@ const AlertsDropdown = ({
     const date = new Date(timestamp);
     return date.toLocaleString();
   };
-  
-  console.log("AlertsDropdown - allAlerts:", allAlerts);
-  console.log("AlertsDropdown - unreadCount:", unreadCount);
   
   return (
     <div className="alerts-dropdown-container" ref={dropdownRef}>
