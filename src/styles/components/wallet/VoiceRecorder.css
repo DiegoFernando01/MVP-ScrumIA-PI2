@@ -1,0 +1,283 @@
+/* Estilos para el componente de grabación por voz */
+.voice-recorder-container {
+  position: relative;
+  z-index: 100;
+}
+
+.voice-button {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: #f8f9fa;
+  border: 2px solid #dee2e6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.voice-button:hover {
+  background-color: #e9ecef;
+}
+
+.voice-button.is-recording {
+  border-color: #dc3545;
+}
+
+.recording-indicator {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: #dc3545;
+  animation: pulse 2s infinite;
+}
+
+.recording-indicator.paused {
+  animation: none;
+  background-color: #ffc107;
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scale(1.2);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.voice-recorder-dropdown {
+  position: absolute;
+  top: 50px;
+  right: 0;
+  width: 350px;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  z-index: 1000;
+}
+
+.voice-recorder-header {
+  padding: 15px;
+  border-bottom: 1px solid #e9ecef;
+  background-color: #007bff;
+  color: white;
+}
+
+.voice-recorder-header h3 {
+  margin: 0;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: white;
+}
+
+.voice-recorder-content {
+  padding: 15px;
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+.voice-visualizer {
+  display: flex;
+  align-items: flex-end;
+  height: 100px;
+  gap: 3px;
+  margin-bottom: 15px;
+  justify-content: center;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  padding: 10px;
+}
+
+.visualizer-bar {
+  flex: 1;
+  background-color: #6c757d;
+  max-width: 6px;
+  border-radius: 3px;
+}
+
+.recording-time {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+  font-size: 18px;
+  font-weight: bold;
+  color: #495057;
+}
+
+.recording-time .recording-indicator {
+  position: static;
+  margin-right: 10px;
+}
+
+.voice-recorder-actions {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.recorder-btn {
+  padding: 8px 12px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  background-color: #f8f9fa;
+  color: #495057;
+}
+
+.recorder-btn:hover {
+  background-color: #e9ecef;
+}
+
+.recorder-btn.start {
+  background-color: #28a745;
+  color: white;
+}
+
+.recorder-btn.start:hover {
+  background-color: #218838;
+}
+
+.recorder-btn.stop {
+  background-color: #dc3545;
+  color: white;
+}
+
+.recorder-btn.stop:hover {
+  background-color: #c82333;
+}
+
+.recorder-btn.pause, .recorder-btn.resume {
+  background-color: #6c757d;
+  color: white;
+}
+
+.recorder-btn.pause:hover, .recorder-btn.resume:hover {
+  background-color: #5a6268;
+}
+
+.recorder-btn.process {
+  background-color: #007bff;
+  color: white;
+}
+
+.recorder-btn.process:hover {
+  background-color: #0069d9;
+}
+
+.recorder-btn.process:disabled {
+  background-color: #6c757d;
+  cursor: not-allowed;
+}
+
+.recorder-btn.discard {
+  background-color: #6c757d;
+  color: white;
+}
+
+.recorder-btn.discard:hover {
+  background-color: #5a6268;
+}
+
+/* Estilo especial para el botón de ejecutar acción */
+.recorder-btn.execute-action {
+  background-color: #fd7e14;
+  color: white;
+  font-weight: bold;
+  padding: 10px 15px;
+  margin: 15px auto;
+  display: flex;
+  width: auto;
+  font-size: 16px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border: 2px solid #e8590c;
+}
+
+.recorder-btn.execute-action:hover {
+  background-color: #e8590c;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+}
+
+.empty-recorder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  text-align: center;
+}
+
+.empty-recorder .mic-icon {
+  font-size: 40px;
+  color: #6c757d;
+  margin-bottom: 15px;
+}
+
+.recording-playback {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.audio-player {
+  width: 100%;
+  margin-bottom: 10px;
+}
+
+.transcription-result, .language-processing-result {
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  padding: 10px 15px;
+  font-size: 14px;
+  color: #495057;
+}
+
+.entities-list {
+  margin-top: 10px;
+}
+
+.entities-list ul {
+  padding-left: 20px;
+  margin-top: 5px;
+}
+
+.intent-action-result {
+  margin-top: 15px;
+  padding: 12px;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.intent-action-result.success {
+  background-color: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.intent-action-result.error {
+  background-color: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}

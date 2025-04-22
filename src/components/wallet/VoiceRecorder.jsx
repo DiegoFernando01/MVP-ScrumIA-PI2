@@ -1,10 +1,13 @@
 import React, { useState, useRef, useEffect } from "react";
-import { FaMicrophone, FaStop, FaTrash, FaPause, FaPlay, FaPaperPlane } from "react-icons/fa";
+import { FaMicrophone, FaStop, FaTrash, FaPause, FaPlay, FaPaperPlane, FaCheck } from "react-icons/fa";
+import { executeIntentAction } from "../../utils/speechIntentMapper";
+import "../../styles/components/wallet/VoiceRecorder.css";
 
 /**
  * Componente para la grabación y visualización de audio
+ * Ahora con mapeo de intents a acciones de la interfaz
  */
-const VoiceRecorder = () => {
+const VoiceRecorder = ({ onIntentDetected }) => {
   const [isRecording, setIsRecording] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
@@ -14,6 +17,8 @@ const VoiceRecorder = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [transcriptionResult, setTranscriptionResult] = useState("");
   const [languageProcessingResult, setLanguageProcessingResult] = useState(null);
+  const [intentActionResult, setIntentActionResult] = useState(null);
+  const [intentExecuted, setIntentExecuted] = useState(false);
   
   const dropdownRef = useRef(null);
   const timerRef = useRef(null);
@@ -133,6 +138,8 @@ const VoiceRecorder = () => {
       setIsRecording(true);
       setIsPaused(false);
       setRecordingTime(0);
+      setIntentActionResult(null);
+      setIntentExecuted(false);
       
     } catch (error) {
       alert("No se pudo acceder al micrófono. Por favor, asegúrate de dar permiso para usar el micrófono.");
@@ -176,6 +183,9 @@ const VoiceRecorder = () => {
     
     setRecordingTime(0);
     setTranscriptionResult("");
+    setLanguageProcessingResult(null);
+    setIntentActionResult(null);
+    setIntentExecuted(false);
   };
   
   // Procesar audio con Azure
@@ -185,6 +195,8 @@ const VoiceRecorder = () => {
     try {
       setIsProcessing(true);
       setLanguageProcessingResult(null);
+      setIntentActionResult(null);
+      setIntentExecuted(false);
       
       // Obtener el blob de audio desde la URL
       const response = await fetch(audioURL);
@@ -223,7 +235,7 @@ const VoiceRecorder = () => {
         // Enviar la solicitud
         xhr.send(formData);
       });
-      console.log("Transcripción:", transcriptionResponse);
+      
       // Actualizar el resultado de la transcripción
       const transcribedText = transcriptionResponse.text || "No se detectó texto en el audio";
       setTranscriptionResult(transcribedText);
@@ -245,6 +257,11 @@ const VoiceRecorder = () => {
           
           const languageResult = await languageResponse.json();
           setLanguageProcessingResult(languageResult);
+          
+          // Notificar al componente padre sobre el intent detectado
+          if (onIntentDetected && languageResult.intent) {
+            onIntentDetected(languageResult);
+          }
         } catch (error) {
           console.error("Error al procesar el lenguaje:", error);
         }
@@ -255,6 +272,99 @@ const VoiceRecorder = () => {
       setTranscriptionResult("Error al procesar el audio: " + error.message);
       setIsProcessing(false);
     }
+  };
+  
+  // Ejecutar la acción basada en el intent y entities detectados
+  const executeAction = () => {
+    if (!languageProcessingResult || !languageProcessingResult.intent || intentExecuted) {
+      return;
+    }
+    
+    // Definir callbacks para las acciones
+    const callbacks = {
+      onCreateTransaction: (transaction) => {
+        // Disparar evento personalizado con los datos de la transacción
+        const event = new CustomEvent('voice-create-transaction', { 
+          detail: { transaction } 
+        });
+        window.dispatchEvent(event);
+      },
+      
+      onFilterTransactions: (filters) => {
+        // Disparar evento para aplicar filtros
+        const event = new CustomEvent('voice-filter-transactions', { 
+          detail: { filters } 
+        });
+        window.dispatchEvent(event);
+        
+        // Si hay un filtro de tipo, mostrar la pestaña correspondiente
+        if (filters.type === 'expense' || filters.type === 'income') {
+          window.dispatchEvent(new Event('navigate-to-transactions'));
+        }
+      },
+      
+      onCheckBalance: () => {
+        // Obtener y devolver el balance actual
+        const balanceElement = document.querySelector('.card-title:contains("Balance") + .card-content .card-value');
+        if (balanceElement) {
+          const balanceText = balanceElement.textContent.trim().replace('$', '').replace(',', '');
+          return parseFloat(balanceText);
+        }
+        return 0;
+      },
+      
+      onCheckExpenses: (categoria, periodo) => {
+        // Navegar a la pestaña de transacciones
+        window.dispatchEvent(new Event('navigate-to-transactions'));
+        
+        // Aplicar filtros si es necesario
+        if (categoria) {
+          const event = new CustomEvent('voice-filter-transactions', { 
+            detail: { filters: { type: 'expense', category: categoria } } 
+          });
+          window.dispatchEvent(event);
+        }
+        
+        // Devolver el total de gastos
+        const expensesElement = document.querySelector('.card-title:contains("Gastos") + .card-content .card-value');
+        if (expensesElement) {
+          const expensesText = expensesElement.textContent.trim().replace('$', '').replace(',', '');
+          return { total: parseFloat(expensesText) };
+        }
+        return { total: 0 };
+      },
+      
+      onCheckIncomes: (categoria, periodo) => {
+        // Navegar a la pestaña de transacciones
+        window.dispatchEvent(new Event('navigate-to-transactions'));
+        
+        // Aplicar filtros si es necesario
+        if (categoria) {
+          const event = new CustomEvent('voice-filter-transactions', { 
+            detail: { filters: { type: 'income', category: categoria } } 
+          });
+          window.dispatchEvent(event);
+        }
+        
+        // Devolver el total de ingresos
+        const incomesElement = document.querySelector('.card-title:contains("Ingresos") + .card-content .card-value');
+        if (incomesElement) {
+          const incomesText = incomesElement.textContent.trim().replace('$', '').replace(',', '');
+          return { total: parseFloat(incomesText) };
+        }
+        return { total: 0 };
+      }
+    };
+    
+    // Ejecutar la acción correspondiente al intent
+    const result = executeIntentAction(
+      languageProcessingResult.intent,
+      languageProcessingResult.entities || [],
+      callbacks
+    );
+    
+    setIntentActionResult(result);
+    setIntentExecuted(true);
   };
   
   return (
@@ -350,6 +460,22 @@ const VoiceRecorder = () => {
                             </li>
                           ))}
                         </ul>
+                      </div>
+                    )}
+                    
+                    {!intentExecuted && (
+                      <button 
+                        onClick={executeAction}
+                        className="recorder-btn execute-action"
+                        title="Ejecutar acción"
+                      >
+                        <FaCheck /> Ejecutar acción
+                      </button>
+                    )}
+                    
+                    {intentActionResult && (
+                      <div className={`intent-action-result ${intentActionResult.success ? 'success' : 'error'}`}>
+                        <p><strong>{intentActionResult.success ? 'Acción ejecutada:' : 'Error:'}</strong> {intentActionResult.message}</p>
                       </div>
                     )}
                   </div>

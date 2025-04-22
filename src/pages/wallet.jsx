@@ -20,6 +20,7 @@ import { validateTransaction } from "../utils/validationUtils";
 import useTransactions from "../hooks/useTransactions"; 
 import Reportes from "../components/wallet/Reportes";
 import { getUserData } from "../services/userService";
+import { parseDate } from "../utils/speechIntentMapper";
 
 // Importación de estilos modularizados
 import "../styles/components/wallet/Common.css";
@@ -97,6 +98,9 @@ function Wallet() {
   
   // Variable para evitar verificaciones de alertas en el primer renderizado
   const [isInitialRender, setIsInitialRender] = useState(true);
+
+  // Estado para almacenar mensajes de procesamiento de voz
+  const [voiceMessage, setVoiceMessage] = useState(null);
 
   // Obtener datos del usuario
   useEffect(() => {
@@ -195,6 +199,183 @@ function Wallet() {
       window.removeEventListener('navigate-to-alerts', handleNavigateToAlerts);
     };
   }, []);
+
+  // Escuchar eventos de navegación por voz
+  useEffect(() => {
+    // Manejador para navegar a la pestaña de transacciones
+    const handleNavigateToTransactions = () => {
+      setActiveTab("transactions");
+    };
+    
+    // Manejador para crear una transacción mediante voz
+    const handleVoiceCreateTransaction = (event) => {
+      const { transaction } = event.detail;
+      
+      if (!transaction) return;
+      
+      console.log("Recibido evento de transacción por voz:", transaction);
+      
+      // Validar y establecer el tipo de transacción
+      const validType = transaction.type === 'income' || transaction.type === 'expense' 
+        ? transaction.type 
+        : 'expense';
+      
+      // Validar y establecer la categoría (asegurarse de que existe en las predefinidas)
+      let validCategory = '';
+      if (transaction.category) {
+        const categoryList = validType === 'income' 
+          ? categoryManager.predefinedCategories.income
+          : categoryManager.predefinedCategories.expense;
+        
+        const categoryExists = categoryList.some(cat => 
+          cat.toLowerCase() === transaction.category.toLowerCase()
+        );
+        
+        if (categoryExists) {
+          // Encontrar la categoría con el mismo caso (mayúsculas/minúsculas) que está en la lista
+          validCategory = categoryList.find(cat => 
+            cat.toLowerCase() === transaction.category.toLowerCase()
+          );
+        } else {
+          // Si la categoría no existe, intentamos agregarla
+          const addSuccess = categoryManager.addCategory(validType, transaction.category);
+          if (addSuccess) {
+            validCategory = transaction.category;
+          }
+        }
+      }
+      
+      if (!validCategory) {
+        setVoiceMessage({
+          type: 'error',
+          message: `No se pudo determinar una categoría válida de tipo ${validType}. Por favor selecciona una categoría existente.`
+        });
+        return;
+      }
+      
+      // Validar y establecer la fecha (debe ser una fecha válida en formato YYYY-MM-DD)
+      const today = new Date().toISOString().split('T')[0];
+      let validDate = today;
+      
+      if (transaction.date && /^\d{4}-\d{2}-\d{2}$/.test(transaction.date)) {
+        validDate = transaction.date;
+      }
+      
+      // Validar monto (debe ser un número mayor que cero)
+      const amount = parseFloat(transaction.amount);
+      if (isNaN(amount) || amount <= 0) {
+        setVoiceMessage({
+          type: 'error',
+          message: 'El monto debe ser un número mayor a cero.'
+        });
+        return;
+      }
+      
+      // Crear datos de formulario para la transacción
+      const newFormData = {
+        type: validType,
+        amount: amount.toString(),
+        category: validCategory,
+        date: validDate,
+        description: transaction.description || '',
+      };
+      
+      console.log("Datos de transacción validados:", newFormData);
+      
+      // Verificar si hay errores en la transacción
+      const validationErrors = validateTransaction(newFormData);
+      if (Object.keys(validationErrors).length > 0) {
+        console.error("Errores de validación:", validationErrors);
+        setVoiceMessage({
+          type: 'error',
+          message: `La transacción por voz tiene errores: ${Object.values(validationErrors).join(', ')}`
+        });
+        return;
+      }
+      
+      // Crear la transacción
+      createTransaction(newFormData)
+        .then(result => {
+          if (result.success) {
+            setVoiceMessage({
+              type: 'success',
+              message: `Se ha creado un ${validType === 'income' ? 'ingreso' : 'gasto'} de $${parseFloat(newFormData.amount).toFixed(2)} ${validCategory ? `en ${validCategory}` : ''}`
+            });
+            // Limpiar el mensaje después de 5 segundos
+            setTimeout(() => setVoiceMessage(null), 5000);
+          } else {
+            setVoiceMessage({
+              type: 'error',
+              message: 'Error al crear la transacción: ' + result.error
+            });
+          }
+        })
+        .catch(error => {
+          setVoiceMessage({
+            type: 'error',
+            message: 'Error al crear la transacción: ' + error.message
+          });
+        });
+    };
+    
+    // Manejador para filtrar transacciones mediante voz
+    const handleVoiceFilterTransactions = (event) => {
+      const { filters } = event.detail;
+      
+      if (!filters) return;
+      
+      try {
+        // Aplicar filtro por tipo si existe
+        if (filters.type) {
+          filterManager.setTypeFilter(filters.type);
+        }
+        
+        // Aplicar filtro por categoría si existe
+        if (filters.category) {
+          filterManager.setCategoryFilter(filters.category);
+        }
+        
+        // Aplicar filtro por rango de fechas si existe
+        if (filters.dateRange) {
+          const { start, end } = filters.dateRange;
+          if (start && end) {
+            filterManager.handleDateFilterChange([start, end]);
+          } else if (start) {
+            filterManager.handleDateFilterChange([start, null]);
+          } else if (end) {
+            filterManager.handleDateFilterChange([null, end]);
+          }
+        }
+        
+        // Mostrar mensaje de éxito
+        setVoiceMessage({
+          type: 'success',
+          message: 'Filtros aplicados correctamente'
+        });
+        
+        // Limpiar el mensaje después de 5 segundos
+        setTimeout(() => setVoiceMessage(null), 5000);
+        
+      } catch (error) {
+        setVoiceMessage({
+          type: 'error',
+          message: 'Error al aplicar filtros: ' + error.message
+        });
+      }
+    };
+    
+    // Registrar manejadores de eventos
+    window.addEventListener('navigate-to-transactions', handleNavigateToTransactions);
+    window.addEventListener('voice-create-transaction', handleVoiceCreateTransaction);
+    window.addEventListener('voice-filter-transactions', handleVoiceFilterTransactions);
+    
+    // Limpiar manejadores al desmontar
+    return () => {
+      window.removeEventListener('navigate-to-transactions', handleNavigateToTransactions);
+      window.removeEventListener('voice-create-transaction', handleVoiceCreateTransaction);
+      window.removeEventListener('voice-filter-transactions', handleVoiceFilterTransactions);
+    };
+  }, [categoryManager.predefinedCategories, createTransaction, filterManager]);
 
   // Obtener categorías únicas para filtros
   const getUniqueCategories = () => {
@@ -417,6 +598,23 @@ function Wallet() {
    */
   const toggleSidebar = () => {
     setSidebarCollapsed(!sidebarCollapsed);
+  };
+
+  /**
+   * Maneja los resultados del procesamiento de voz
+   */
+  const handleIntentDetected = (languageProcessingResult) => {
+    // Este método se puede usar para procesar intents directamente en el componente principal
+    console.log("Intent detectado:", languageProcessingResult.intent);
+    
+    // Navegar a la pestaña correspondiente según el intent
+    if (languageProcessingResult.intent.toLowerCase() === 'filtrartransacciones' ||
+        languageProcessingResult.intent.toLowerCase() === 'creartransaccion' ||
+        languageProcessingResult.intent.toLowerCase() === 'consultarsaldo') {
+      setActiveTab("transactions");
+    } else if (languageProcessingResult.intent.toLowerCase() === 'consultarpresupuesto') {
+      setActiveTab("budgets");
+    }
   };
 
   // Obtener el conteo total de alertas no leídas (presupuestos + recordatorios)
@@ -725,9 +923,21 @@ function Wallet() {
               markReminderAlertAsRead={reminderManager.markReminderAlertAsRead}
               dismissReminderAlert={reminderManager.dismissReminderAlert}
             />
-            <VoiceRecorder />
+            <VoiceRecorder onIntentDetected={handleIntentDetected} />
           </div>
         </div>
+
+        {/* Mostrar mensajes de procesamiento de voz cuando existan */}
+        {voiceMessage && (
+          <div className={`voice-notification ${voiceMessage.type}`}>
+            <span className="voice-notification-icon">
+              {voiceMessage.type === 'success' ? '✅' : '❌'}
+            </span>
+            <span className="voice-notification-message">
+              {voiceMessage.message}
+            </span>
+          </div>
+        )}
 
         {/* Contenido dinámico según la pestaña seleccionada */}
         {renderContent()}
