@@ -11,6 +11,7 @@ import ReminderManager from "../components/wallet/ReminderManager";
 import AlertDisplay from "../components/wallet/AlertDisplay";
 import AlertsDropdown from "../components/wallet/AlertsDropdown";
 import VoiceRecorder from "../components/wallet/VoiceRecorder";
+import VoiceNotification from "../components/wallet/VoiceNotification";
 import useCategories from "../hooks/useCategories";
 import useTransactionFilters from "../hooks/useTransactionFilters";
 import useBudgets from "../hooks/useBudgets";
@@ -297,23 +298,30 @@ function Wallet() {
       createTransaction(newFormData)
         .then(result => {
           if (result.success) {
+            // Mensaje de éxito con formato claro y detallado
+            const amount = parseFloat(newFormData.amount);
+            const formattedAmount = new Intl.NumberFormat('es-ES', { 
+              style: 'currency', 
+              currency: 'EUR',
+              minimumFractionDigits: 0, 
+              maximumFractionDigits: 2 
+            }).format(amount);
+            
             setVoiceMessage({
               type: 'success',
-              message: `Se ha creado un ${validType === 'income' ? 'ingreso' : 'gasto'} de $${parseFloat(newFormData.amount).toFixed(2)} ${validCategory ? `en ${validCategory}` : ''}`
+              message: `¡Transacción creada! ${validType === 'income' ? 'Ingreso' : 'Gasto'} de ${formattedAmount} ${validCategory ? `en categoría "${validCategory}"` : ''} registrado correctamente.`
             });
-            // Limpiar el mensaje después de 5 segundos
-            setTimeout(() => setVoiceMessage(null), 5000);
           } else {
             setVoiceMessage({
               type: 'error',
-              message: 'Error al crear la transacción: ' + result.error
+              message: `No se pudo crear la transacción: ${result.error || 'Error desconocido'}`
             });
           }
         })
         .catch(error => {
           setVoiceMessage({
             type: 'error',
-            message: 'Error al crear la transacción: ' + error.message
+            message: `Error al crear la transacción: ${error.message}`
           });
         });
     };
@@ -347,19 +355,33 @@ function Wallet() {
           }
         }
         
-        // Mostrar mensaje de éxito
-        setVoiceMessage({
-          type: 'success',
-          message: 'Filtros aplicados correctamente'
-        });
+        // Mostrar mensaje de éxito con detalles de los filtros aplicados
+        let filterDetails = [];
+        if (filters.type) {
+          filterDetails.push(`tipo: ${filters.type === 'income' ? 'ingresos' : 'gastos'}`);
+        }
+        if (filters.category) {
+          filterDetails.push(`categoría: "${filters.category}"`);
+        }
+        if (filters.dateRange) {
+          if (filters.dateRange.start && filters.dateRange.end) {
+            filterDetails.push(`período: del ${formatDate(filters.dateRange.start)} al ${formatDate(filters.dateRange.end)}`);
+          } else if (filters.dateRange.start) {
+            filterDetails.push(`desde: ${formatDate(filters.dateRange.start)}`);
+          } else if (filters.dateRange.end) {
+            filterDetails.push(`hasta: ${formatDate(filters.dateRange.end)}`);
+          }
+        }
         
-        // Limpiar el mensaje después de 5 segundos
-        setTimeout(() => setVoiceMessage(null), 5000);
+        setVoiceMessage({
+          type: 'info',
+          message: `Filtros aplicados: ${filterDetails.join(', ')}`
+        });
         
       } catch (error) {
         setVoiceMessage({
           type: 'error',
-          message: 'Error al aplicar filtros: ' + error.message
+          message: `Error al aplicar filtros: ${error.message}`
         });
       }
     };
@@ -810,6 +832,11 @@ function Wallet() {
       .substring(0, 2);
   };
 
+  // Función para limpiar mensajes de voz
+  const clearVoiceMessage = () => {
+    setVoiceMessage(null);
+  };
+
   return (
     <div className="wallet-container">
       {/* Barra lateral */}
@@ -929,14 +956,11 @@ function Wallet() {
 
         {/* Mostrar mensajes de procesamiento de voz cuando existan */}
         {voiceMessage && (
-          <div className={`voice-notification ${voiceMessage.type}`}>
-            <span className="voice-notification-icon">
-              {voiceMessage.type === 'success' ? '✅' : '❌'}
-            </span>
-            <span className="voice-notification-message">
-              {voiceMessage.message}
-            </span>
-          </div>
+          <VoiceNotification 
+            message={voiceMessage}
+            onDismiss={clearVoiceMessage}
+            autoHideDuration={6000}
+          />
         )}
 
         {/* Contenido dinámico según la pestaña seleccionada */}
