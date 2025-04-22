@@ -13,6 +13,7 @@ const VoiceRecorder = () => {
   const [visualizerData, setVisualizerData] = useState(Array(20).fill(5));
   const [isProcessing, setIsProcessing] = useState(false);
   const [transcriptionResult, setTranscriptionResult] = useState("");
+  const [languageProcessingResult, setLanguageProcessingResult] = useState(null);
   
   const dropdownRef = useRef(null);
   const timerRef = useRef(null);
@@ -183,6 +184,7 @@ const VoiceRecorder = () => {
     
     try {
       setIsProcessing(true);
+      setLanguageProcessingResult(null);
       
       // Obtener el blob de audio desde la URL
       const response = await fetch(audioURL);
@@ -197,7 +199,7 @@ const VoiceRecorder = () => {
       formData.append('audioType', audioBlob.type); // Incluir el tipo MIME para ayudar al servidor
       
       // Usar XMLHttpRequest para mejor manejo de FormData
-      return new Promise((resolve, reject) => {
+      const transcriptionResponse = await new Promise((resolve, reject) => {
         const xhr = new XMLHttpRequest();
         xhr.open('POST', '/api/transcribe', true);
         
@@ -205,31 +207,50 @@ const VoiceRecorder = () => {
           if (xhr.status >= 200 && xhr.status < 300) {
             try {
               const result = JSON.parse(xhr.responseText);
-              setTranscriptionResult(result.text || "No se detectó texto en el audio");
-              setIsProcessing(false);
-              resolve();
+              resolve(result);
             } catch (e) {
-              setTranscriptionResult("Error al procesar el audio: " + e.message);
-              setIsProcessing(false);
               reject(e);
             }
           } else {
-            setTranscriptionResult(`Error al procesar el audio: ${xhr.status}. Intenta una grabación más corta y clara.`);
-            setIsProcessing(false);
             reject(new Error(`Error HTTP ${xhr.status}`));
           }
         };
         
         xhr.onerror = function() {
-          setTranscriptionResult("Error de red al enviar el audio. Verifica tu conexión.");
-          setIsProcessing(false);
           reject(new Error("Error de red"));
         };
         
         // Enviar la solicitud
         xhr.send(formData);
       });
+      console.log("Transcripción:", transcriptionResponse);
+      // Actualizar el resultado de la transcripción
+      const transcribedText = transcriptionResponse.text || "No se detectó texto en el audio";
+      setTranscriptionResult(transcribedText);
       
+      // Si se obtuvo texto transcrito, enviarlo al API de procesamiento de lenguaje
+      if (transcribedText && transcribedText !== "No se detectó texto en el audio") {
+        try {
+          const languageResponse = await fetch('/api/processLanguage', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ text: transcribedText }),
+          });
+          
+          if (!languageResponse.ok) {
+            throw new Error(`Error en procesamiento de lenguaje: ${languageResponse.status}`);
+          }
+          
+          const languageResult = await languageResponse.json();
+          setLanguageProcessingResult(languageResult);
+        } catch (error) {
+          console.error("Error al procesar el lenguaje:", error);
+        }
+      }
+      
+      setIsProcessing(false);
     } catch (error) {
       setTranscriptionResult("Error al procesar el audio: " + error.message);
       setIsProcessing(false);
@@ -310,6 +331,27 @@ const VoiceRecorder = () => {
                 {transcriptionResult && (
                   <div className="transcription-result">
                     <p><strong>Transcripción:</strong> {transcriptionResult}</p>
+                  </div>
+                )}
+                
+                {languageProcessingResult && (
+                  <div className="language-processing-result">
+                    <p><strong>Intención detectada:</strong> {languageProcessingResult.intent}</p>
+                    {languageProcessingResult.entities && languageProcessingResult.entities.length > 0 && (
+                      <div className="entities-list">
+                        <p><strong>Entidades:</strong></p>
+                        <ul>
+                          {languageProcessingResult.entities.map((entity, index) => (
+                            <li key={index}>
+                              {entity.category}: <strong>{entity.text}</strong>
+                              {entity.resolutions && entity.resolutions.length > 0 && (
+                                <span> ({entity.resolutions[0].value})</span>
+                              )}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
                   </div>
                 )}
                 
