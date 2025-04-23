@@ -310,7 +310,8 @@ const VoiceRecorder = forwardRef(({ onIntentDetected }, ref) => {
           const languageResult = await languageResponse.json();
           setLanguageProcessingResult(languageResult);
           
-          // Notificar al componente padre sobre el intent detectado
+          // Solo notificar al componente padre sobre el intent detectado
+          // pero NO ejecutar ninguna acción automáticamente
           if (onIntentDetected && languageResult.intent) {
             onIntentDetected(languageResult);
           }
@@ -335,6 +336,16 @@ const VoiceRecorder = forwardRef(({ onIntentDetected }, ref) => {
 
     // Definir callbacks para las acciones
     const callbacks = {
+      onNavigateToTab: (tabId) => {
+        // Navegar a la pestaña correspondiente
+        if (tabId) {
+          if (['transactions', 'budgets', 'categories', 'reminders', 'alerts', 'reports'].includes(tabId)) {
+            const event = new Event('navigate-to-' + tabId);
+            window.dispatchEvent(event);
+          }
+        }
+      },
+      
       onCreateTransaction: (transaction) => {
         // Disparar evento personalizado con los datos de la transacción
         const event = new CustomEvent('voice-create-transaction', { 

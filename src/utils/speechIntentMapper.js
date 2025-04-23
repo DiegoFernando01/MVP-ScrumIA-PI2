@@ -179,6 +179,9 @@ export function executeIntentAction(intent, entities, callbacks) {
 
   // Acciones según el tipo de intent
   switch (intent.toLowerCase()) {
+    case 'navegacionpestana':
+      return handleTabNavigation(entityMap, callbacks);
+      
     case 'creartransaccion':
       return handleCreateTransaction(entityMap, callbacks);
       
@@ -425,6 +428,66 @@ function handleCheckIncomes(entityMap, callbacks) {
     return { 
       success: false, 
       message: 'Ocurrió un error al consultar los ingresos'
+    };
+  }
+}
+
+/**
+ * Maneja la navegación a una pestaña específica
+ */
+function handleTabNavigation(entityMap, callbacks) {
+  if (!callbacks.onNavigateToTab) {
+    return { 
+      success: false, 
+      message: 'No se proporcionó manejador para navegación entre pestañas' 
+    };
+  }
+  
+  const tabName = entityMap.pestana?.toLowerCase();
+  
+  if (!tabName) {
+    return {
+      success: false,
+      message: 'No se especificó la pestaña a la que deseas ir'
+    };
+  }
+  
+  try {
+    // Mapear los nombres de pestañas a identificadores del sistema
+    const tabMap = {
+      'transacciones': 'transactions',
+      'presupuestos': 'budgets',
+      'presupuesto': 'budgets',
+      'categorias': 'categories',
+      'categorías': 'categories',
+      'categoría': 'categories',
+      'categoria': 'categories',
+      'vencimientos': 'reminders',
+      'vencimiento': 'reminders',
+      'recordatorios': 'reminders',
+      'recordatorio': 'reminders',
+      'alertas': 'alerts',
+      'alerta': 'alerts',
+      'reportes': 'reports',
+      'reporte': 'reports',
+      'informe': 'reports',
+      'informes': 'reports'
+    };
+    
+    const tabId = tabMap[tabName] || tabName;
+    
+    callbacks.onNavigateToTab(tabId);
+    
+    return {
+      success: true,
+      message: `Navegando a la pestaña ${tabName}`,
+      data: { tabId }
+    };
+  } catch (error) {
+    console.error('Error al navegar a pestaña:', error);
+    return {
+      success: false,
+      message: 'Ocurrió un error al intentar navegar a la pestaña solicitada'
     };
   }
 }
