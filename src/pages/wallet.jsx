@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import TransactionForm from "../components/wallet/TransactionForm";
@@ -54,6 +54,12 @@ function Wallet() {
   // Hooks para autenticación y navegación
   const { logout } = useAuth();
   const navigate = useNavigate();
+
+  // Referencia al componente VoiceRecorder para controlarlo externamente
+  const voiceRecorderRef = useRef(null);
+  
+  // Estado para controlar la visibilidad del componente VoiceRecorder (si se necesita)
+  const [isVoiceRecorderOpen, setIsVoiceRecorderOpen] = useState(false);
 
   // Estados locales para transacciones y formulario
   const {
@@ -626,18 +632,110 @@ function Wallet() {
    * Maneja los resultados del procesamiento de voz
    */
   const handleIntentDetected = (languageProcessingResult) => {
-    // Este método se puede usar para procesar intents directamente en el componente principal
-    console.log("Intent detectado:", languageProcessingResult.intent);
-    
-    // Navegar a la pestaña correspondiente según el intent
-    if (languageProcessingResult.intent.toLowerCase() === 'filtrartransacciones' ||
-        languageProcessingResult.intent.toLowerCase() === 'creartransaccion' ||
-        languageProcessingResult.intent.toLowerCase() === 'consultarsaldo') {
-      setActiveTab("transactions");
-    } else if (languageProcessingResult.intent.toLowerCase() === 'consultarpresupuesto') {
-      setActiveTab("budgets");
+    let intentProcessed = false; // Para saber si se hizo algo y debemos cerrar
+  
+    try {
+      // Navegación por voz a pestañas
+      if (
+        languageProcessingResult.intent === "NavegacionPestana" &&
+        languageProcessingResult.entities &&
+        languageProcessingResult.entities.length > 0
+      ) {
+        const tabEntity = languageProcessingResult.entities.find(
+          (e) => e.category === "pestana"
+        );
+  
+        if (tabEntity && tabEntity.text) {
+          const targetTabName = tabEntity.text.toLowerCase();
+          const tabMap = {
+            transacciones: "transactions",
+            presupuestos: "budgets",
+            categorias: "categories",
+            vencimientos: "reminders",
+            alertas: "alerts",
+            reportes: "reports",
+          };
+          const targetTabId = tabMap[targetTabName];
+  
+          if (targetTabId) {
+            setActiveTab(targetTabId);
+            setVoiceMessage({
+              type: "success",
+              message: `Navegando a la pestaña "${targetTabName.charAt(0).toUpperCase() + targetTabName.slice(1)}"`,
+            });
+          } else {
+            setVoiceMessage({
+              type: "error",
+              message: `No se reconoció la pestaña "${targetTabName}" para navegación.`,
+            });
+          }
+        } else {
+           setVoiceMessage({
+             type: "error",
+             message: "No se pudo identificar la pestaña a la que deseas navegar.",
+           });
+        }
+        intentProcessed = true; // Marcamos que se procesó una intención
+      }
+  
+      // ... (otras intenciones como CrearTransaccion, FiltrarTransacciones, etc.)
+      else if (languageProcessingResult.intent.toLowerCase() === 'filtrartransacciones') {
+        // Aquí iría la lógica real para aplicar filtros basada en languageProcessingResult.entities
+        // Ejemplo: const filters = parseFiltersFromEntities(languageProcessingResult.entities);
+        // applyFilters(filters);
+        // setActiveTab("transactions"); // Opcional: mantener si filtrar implica ir a transacciones
+        setVoiceMessage({ type: "info", message: "Filtros aplicados por voz." }); // Ejemplo
+        intentProcessed = true;
+      }
+      else if (languageProcessingResult.intent.toLowerCase() === 'creartransaccion') {
+         // Aquí iría la lógica real para crear la transacción basada en languageProcessingResult.entities
+         // Ejemplo: const transactionData = parseTransactionFromEntities(languageProcessingResult.entities);
+         // createTransaction(transactionData);
+         // setActiveTab("transactions"); // Opcional
+         setVoiceMessage({ type: "success", message: "Transacción creada por voz." }); // Ejemplo
+         intentProcessed = true;
+      }
+      // ... otros else if para ConsultarSaldo, etc.
+  
+      else {
+        // Si la intención no es reconocida o no requiere acción visible
+        console.warn("Intent no manejado explícitamente o sin acción requerida:", languageProcessingResult.intent);
+        // Podrías poner un mensaje genérico si no se hizo nada específico
+        if (!intentProcessed && languageProcessingResult.intent) { // Mostrar mensaje solo si hubo una intención detectada
+           setVoiceMessage({ type: "info", message: `Comando '${languageProcessingResult.intent}' procesado.` });
+        }
+        // Si hubo una intención (aunque no la manejemos aquí), marcamos para cerrar
+        if (languageProcessingResult.intent) {
+            intentProcessed = true;
+        }
+      }
+  
+    } catch (error) {
+        console.error("Error al procesar la intención de voz:", error);
+        setVoiceMessage({ type: "error", message: "Hubo un error al procesar tu comando." });
+        intentProcessed = true; // Marcamos también en caso de error para cerrar
+    } finally {
+        // --- Cerrar el componente del micrófono ---
+        // Se ejecuta siempre después del try o catch, si se procesó algo
+        if (intentProcessed) {
+            console.log("Cerrando Voice Recorder después de procesar la intención.");
+            // Llama a la función que cierra/oculta el componente VoiceRecorder
+            // Asegúrate que setIsVoiceRecorderOpen exista y esté disponible en este scope
+            if (typeof setIsVoiceRecorderOpen === 'function') {
+              setIsVoiceRecorderOpen(false);
+            } else {
+              console.warn("setIsVoiceRecorderOpen no está definida o no es una función en handleIntentDetected");
+            }
+        }
     }
   };
+  
+  // Asegúrate de tener estados como estos en tu componente Wallet:
+  // const [activeTab, setActiveTab] = useState("transactions"); // o el tab inicial
+  // const [voiceMessage, setVoiceMessage] = useState(null);
+  
+  // Y renderizar el componente VoiceNotification:
+  // {voiceMessage && <VoiceNotification message={voiceMessage} onDismiss={() => setVoiceMessage(null)} />}
 
   // Obtener el conteo total de alertas no leídas (presupuestos + recordatorios)
   const getTotalUnreadAlerts = () => {
@@ -950,7 +1048,10 @@ function Wallet() {
               markReminderAlertAsRead={reminderManager.markReminderAlertAsRead}
               dismissReminderAlert={reminderManager.dismissReminderAlert}
             />
-            <VoiceRecorder onIntentDetected={handleIntentDetected} />
+            <VoiceRecorder 
+              ref={voiceRecorderRef}
+              onIntentDetected={handleIntentDetected} 
+            />
           </div>
         </div>
 

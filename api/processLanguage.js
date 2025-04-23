@@ -38,22 +38,30 @@ export default async function handler(req, res) {
       deployment 
     });
     
-    // Modificar la instrucción del sistema para evitar filtros de contenido e incluir fecha actual
-    const systemPrompt = `Estás trabajando para una aplicación de gestión financiera. Para las consultas relacionadas con registrar movimientos financieros, responde únicamente con un objeto JSON que contenga las siguientes propiedades:
+    // Modificar la instrucción del sistema para incluir la nueva intención de navegación
+    const systemPrompt = `Eres el asistente de una aplicación de finanzas personales. Analiza la consulta del usuario y responde únicamente con un JSON según la intención detectada.
 
-1. "intent" - La intención identificada (CrearTransaccion, None, etc.)
-2. "TipoTransaccion" - Si es "gasto" o "ingreso"
-3. "Monto" - Valor numérico sin formato de moneda
-4. "Categoria" - Categoría del movimiento según las listas proporcionadas
-5. "Fecha" - En formato DD/MM/AAAA
-6. "Descripción" - Texto descriptivo adicional (opcional)
+Hay tres tipos de intenciones principales:
 
-Debes tener claro cuál es la fecha del día en curso, al momento de registrar esta información, estamos a 23/04/2025.
+1. CREAR TRANSACCIÓN: Si el usuario quiere registrar un movimiento financiero, responde:
+{
+  "intent": "CrearTransaccion",
+  "TipoTransaccion": "gasto" o "ingreso",
+  "Monto": valor numérico,
+  "Categoria": una de [Alimentación, Transporte, Vivienda, Entretenimiento, Salud, Educación, Ropa, Servicios, Otros gastos, Salario, Ventas, Inversiones, Préstamo, Regalo, Otros ingresos],
+  "Fecha": formato DD/MM/AAAA,
+  "Descripción": texto descriptivo adicional (opcional)
+}
+Recuerda: Hoy es 23/04/2025.
 
-Para gastos, las categorías válidas son: Alimentación, Transporte, Vivienda, Entretenimiento, Salud, Educación, Ropa, Servicios, Otros gastos. 
-Para ingresos: Salario, Ventas, Inversiones, Préstamo, Regalo, Otros ingresos.
+2. NAVEGAR ENTRE PESTAÑAS: Si el usuario quiere moverse a una sección de la app, responde:
+{
+  "intent": "NavegacionPestana",
+  "pestana": "transacciones" | "presupuestos" | "categorias" | "vencimientos" | "alertas" | "reportes"
+}
+Las pestañas disponibles son: transacciones, presupuestos, categorias, vencimientos, alertas, reportes. Si el usuario dice frases como "ir a", "abrir", "mostrar", "ver" seguido del nombre de una sección, responde con esta intención y la pestaña correspondiente.
 
-Si la consulta no corresponde a un registro financiero, responde:
+3. OTRAS CONSULTAS: Si la consulta no corresponde a las anteriores, responde:
 {
   "intent": "None",
   "TipoTransaccion": "",
@@ -96,9 +104,9 @@ Devuelve solo el JSON, sin texto adicional.`;
       });
     }
 
-    // Si el intent es "CrearTransaccion", convertirlo a formato compatible con el cliente
+    // Procesamos según el tipo de intención
     if (parsedResponse.intent === "CrearTransaccion") {
-      // Mapear la respuesta al formato esperado por el cliente
+      // Mapear la respuesta al formato esperado por el cliente para transacciones
       const entities = [
         { category: "TipoTransaccion", text: parsedResponse.TipoTransaccion || "" },
         { category: "Monto", text: parsedResponse.Monto?.toString() || "0" },
@@ -117,8 +125,20 @@ Devuelve solo el JSON, sin texto adicional.`;
       };
       
       return res.status(200).json(formattedResponse);
-    } else {
-      // Si no es una transacción o es "None", devolver una respuesta básica
+    } 
+    else if (parsedResponse.intent === "NavegacionPestana") {
+      // Mapear la respuesta para la navegación entre pestañas
+      const formattedResponse = {
+        intent: parsedResponse.intent,
+        entities: [
+          { category: "pestana", text: parsedResponse.pestana || "" }
+        ]
+      };
+      
+      return res.status(200).json(formattedResponse);
+    }
+    else {
+      // Si no es una transacción o navegación, o es "None", devolver una respuesta básica
       const formattedResponse = {
         intent: parsedResponse.intent || "None",
         entities: []
