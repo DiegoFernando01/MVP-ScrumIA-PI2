@@ -307,17 +307,18 @@ const VoiceRecorder = ({ onIntentDetected }) => {
       
       setIsProcessing(false);
     } catch (error) {
+      console.error("Error al procesar el audio:", error);
       setTranscriptionResult("Error al procesar el audio: " + error.message);
       setIsProcessing(false);
     }
   };
-  
+
   // Ejecutar la acción basada en el intent y entities detectados
   const executeAction = () => {
     if (!languageProcessingResult || !languageProcessingResult.intent || intentExecuted) {
       return;
     }
-    
+
     // Definir callbacks para las acciones
     const callbacks = {
       onCreateTransaction: (transaction) => {
@@ -501,7 +502,9 @@ const VoiceRecorder = ({ onIntentDetected }) => {
                       </div>
                     )}
                     
-                    {!intentExecuted && (
+                    {/* Mostrar el botón "Ejecutar acción" solo si la intención NO es "None" */}
+                    {!intentExecuted && languageProcessingResult.intent && 
+                     languageProcessingResult.intent !== "None" && (
                       <button 
                         onClick={executeAction}
                         className="recorder-btn execute-action"
