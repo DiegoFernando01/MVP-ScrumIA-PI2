@@ -220,8 +220,6 @@ function Wallet() {
       
       if (!transaction) return;
       
-      console.log("Recibido evento de transacción por voz:", transaction);
-      
       // Validar y establecer el tipo de transacción
       const validType = transaction.type === 'income' || transaction.type === 'expense' 
         ? transaction.type 
@@ -287,12 +285,9 @@ function Wallet() {
         description: transaction.description || '',
       };
       
-      console.log("Datos de transacción validados:", newFormData);
-      
       // Verificar si hay errores en la transacción
       const validationErrors = validateTransaction(newFormData);
       if (Object.keys(validationErrors).length > 0) {
-        console.error("Errores de validación:", validationErrors);
         setVoiceMessage({
           type: 'error',
           message: `La transacción por voz tiene errores: ${Object.values(validationErrors).join(', ')}`
@@ -664,7 +659,6 @@ function Wallet() {
     // No se procesan automáticamente las intenciones aquí
     // Solo cuando el usuario presione el botón de "Ejecutar acción" en el componente VoiceRecorder
     // La función onIntentDetected se llama para recibir el resultado, pero no ejecuta acciones automáticamente
-    console.log("Intención detectada:", languageProcessingResult.intent);
   };
 
   // Asegúrate de tener estados como estos en tu componente Wallet:

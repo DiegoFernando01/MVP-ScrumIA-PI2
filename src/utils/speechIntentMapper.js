@@ -95,7 +95,6 @@ export function parseDate(dateText) {
   }
   
   // Si no se pudo procesar, devolver fecha actual
-  console.warn('No se pudo procesar la fecha:', dateText);
   return new Date().toISOString().split('T')[0];
 }
 
@@ -185,7 +184,6 @@ export function parseCategory(categoryText) {
  */
 export function executeIntentAction(intent, entities, callbacks) {
   if (!intent || !entities || !callbacks) {
-    console.error('Se requieren intent, entities y callbacks para ejecutar acciones');
     return null;
   }
   
@@ -216,7 +214,6 @@ export function executeIntentAction(intent, entities, callbacks) {
       return handleCheckIncomes(entityMap, callbacks);
       
     default:
-      console.warn('Intent no reconocido:', intent);
       return {
         success: false,
         message: `No se reconoció la acción "${intent}"`
@@ -246,19 +243,6 @@ function handleCreateTransaction(entityMap, callbacks) {
   const categoria = parseCategory(categoriaTexto);
   const date = parseDate(fechaTexto);
   
-  console.log('Parseando transacción:', { 
-    tipo, 
-    montoTexto, 
-    categoriaTexto, 
-    fechaTexto, 
-    procesado: { 
-      transactionType, 
-      amount, 
-      categoria, 
-      date 
-    } 
-  });
-  
   // Si no hay monto o está en cero, no podemos crear la transacción
   if (!amount) {
     return {
@@ -286,7 +270,6 @@ function handleCreateTransaction(entityMap, callbacks) {
       data: transaction
     };
   } catch (error) {
-    console.error('Error al crear transacción:', error);
     return {
       success: false,
       message: 'Ocurrió un error al intentar crear la transacción'
@@ -344,7 +327,6 @@ function handleFilterTransactions(entityMap, callbacks) {
       data: filters
     };
   } catch (error) {
-    console.error('Error al aplicar filtros:', error);
     return {
       success: false, 
       message: 'Ocurrió un error al intentar aplicar los filtros'
@@ -368,7 +350,6 @@ function handleCheckBalance(entityMap, callbacks) {
       data: { balance }
     };
   } catch (error) {
-    console.error('Error al consultar saldo:', error);
     return { 
       success: false, 
       message: 'Ocurrió un error al consultar el saldo'
@@ -405,7 +386,6 @@ function handleCheckExpenses(entityMap, callbacks) {
       data: expenses
     };
   } catch (error) {
-    console.error('Error al consultar gastos:', error);
     return { 
       success: false, 
       message: 'Ocurrió un error al consultar los gastos'
@@ -442,7 +422,6 @@ function handleCheckIncomes(entityMap, callbacks) {
       data: incomes
     };
   } catch (error) {
-    console.error('Error al consultar ingresos:', error);
     return { 
       success: false, 
       message: 'Ocurrió un error al consultar los ingresos'
@@ -502,7 +481,6 @@ function handleTabNavigation(entityMap, callbacks) {
       data: { tabId }
     };
   } catch (error) {
-    console.error('Error al navegar a pestaña:', error);
     return {
       success: false,
       message: 'Ocurrió un error al intentar navegar a la pestaña solicitada'
