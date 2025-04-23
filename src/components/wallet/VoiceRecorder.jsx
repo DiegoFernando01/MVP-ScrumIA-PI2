@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, forwardRef, useImperativeHandle } from "react";
 import { FaMicrophone, FaStop, FaTrash, FaPause, FaPlay, FaPaperPlane, FaCheck } from "react-icons/fa";
 import { executeIntentAction } from "../../utils/speechIntentMapper";
 import "../../styles/components/wallet/VoiceRecorder.css";
@@ -7,7 +7,7 @@ import "../../styles/components/wallet/VoiceRecorder.css";
  * Componente para la grabación y visualización de audio
  * Ahora con mapeo de intents a acciones de la interfaz
  */
-const VoiceRecorder = ({ onIntentDetected }) => {
+const VoiceRecorder = forwardRef(({ onIntentDetected }, ref) => {
   const [isRecording, setIsRecording] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
@@ -27,6 +27,20 @@ const VoiceRecorder = ({ onIntentDetected }) => {
   const audioChunksRef = useRef([]);
   const visualizerTimerRef = useRef(null);
   const autoCloseTimerRef = useRef(null);
+  
+  // Exponer métodos al componente padre
+  useImperativeHandle(ref, () => ({
+    // Método para cerrar el dropdown y resetear el estado
+    closeAndReset: () => {
+      resetRecorderState();
+      setIsOpen(false);
+    },
+    
+    // Método para abrir el dropdown
+    open: () => {
+      setIsOpen(true);
+    }
+  }));
   
   // Cerrar dropdown al hacer clic fuera
   useEffect(() => {
@@ -296,7 +310,8 @@ const VoiceRecorder = ({ onIntentDetected }) => {
           const languageResult = await languageResponse.json();
           setLanguageProcessingResult(languageResult);
           
-          // Notificar al componente padre sobre el intent detectado
+          // Solo notificar al componente padre sobre el intent detectado
+          // pero NO ejecutar ninguna acción automáticamente
           if (onIntentDetected && languageResult.intent) {
             onIntentDetected(languageResult);
           }
@@ -307,19 +322,30 @@ const VoiceRecorder = ({ onIntentDetected }) => {
       
       setIsProcessing(false);
     } catch (error) {
+      console.error("Error al procesar el audio:", error);
       setTranscriptionResult("Error al procesar el audio: " + error.message);
       setIsProcessing(false);
     }
   };
-  
+
   // Ejecutar la acción basada en el intent y entities detectados
   const executeAction = () => {
     if (!languageProcessingResult || !languageProcessingResult.intent || intentExecuted) {
       return;
     }
-    
+
     // Definir callbacks para las acciones
     const callbacks = {
+      onNavigateToTab: (tabId) => {
+        // Navegar a la pestaña correspondiente
+        if (tabId) {
+          if (['transactions', 'budgets', 'categories', 'reminders', 'alerts', 'reports'].includes(tabId)) {
+            const event = new Event('navigate-to-' + tabId);
+            window.dispatchEvent(event);
+          }
+        }
+      },
+      
       onCreateTransaction: (transaction) => {
         // Disparar evento personalizado con los datos de la transacción
         const event = new CustomEvent('voice-create-transaction', { 
@@ -501,7 +527,9 @@ const VoiceRecorder = ({ onIntentDetected }) => {
                       </div>
                     )}
                     
-                    {!intentExecuted && (
+                    {/* Mostrar el botón "Ejecutar acción" solo si la intención NO es "None" */}
+                    {!intentExecuted && languageProcessingResult.intent && 
+                     languageProcessingResult.intent !== "None" && (
                       <button 
                         onClick={executeAction}
                         className="recorder-btn execute-action"
@@ -552,6 +580,6 @@ const VoiceRecorder = ({ onIntentDetected }) => {
       )}
     </div>
   );
-};
+});
 
 export default VoiceRecorder;

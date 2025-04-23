@@ -31,7 +31,6 @@ const useTransactions = () => {
 
   const createTransaction = async (data) => { // Asegúrate de usar saveTransaction
     const user = auth.currentUser;
-    console.log("Usuario actual:", user);
     if (!user) return { success: false, error: "Usuario no autenticado" };
 
     const newTransaction = {

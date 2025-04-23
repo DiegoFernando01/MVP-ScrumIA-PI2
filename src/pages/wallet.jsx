@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import TransactionForm from "../components/wallet/TransactionForm";
@@ -54,6 +54,12 @@ function Wallet() {
   // Hooks para autenticación y navegación
   const { logout } = useAuth();
   const navigate = useNavigate();
+
+  // Referencia al componente VoiceRecorder para controlarlo externamente
+  const voiceRecorderRef = useRef(null);
+  
+  // Estado para controlar la visibilidad del componente VoiceRecorder (si se necesita)
+  const [isVoiceRecorderOpen, setIsVoiceRecorderOpen] = useState(false);
 
   // Estados locales para transacciones y formulario
   const {
@@ -214,8 +220,6 @@ function Wallet() {
       
       if (!transaction) return;
       
-      console.log("Recibido evento de transacción por voz:", transaction);
-      
       // Validar y establecer el tipo de transacción
       const validType = transaction.type === 'income' || transaction.type === 'expense' 
         ? transaction.type 
@@ -281,12 +285,9 @@ function Wallet() {
         description: transaction.description || '',
       };
       
-      console.log("Datos de transacción validados:", newFormData);
-      
       // Verificar si hay errores en la transacción
       const validationErrors = validateTransaction(newFormData);
       if (Object.keys(validationErrors).length > 0) {
-        console.error("Errores de validación:", validationErrors);
         setVoiceMessage({
           type: 'error',
           message: `La transacción por voz tiene errores: ${Object.values(validationErrors).join(', ')}`
@@ -398,6 +399,35 @@ function Wallet() {
       window.removeEventListener('voice-filter-transactions', handleVoiceFilterTransactions);
     };
   }, [categoryManager.predefinedCategories, createTransaction, filterManager]);
+
+  // Escuchar eventos de navegación a pestañas
+  useEffect(() => {
+    // Manejadores para navegar a cada pestaña
+    const handleNavigateToTransactions = () => setActiveTab("transactions");
+    const handleNavigateToBudgets = () => setActiveTab("budgets");
+    const handleNavigateToCategories = () => setActiveTab("categories");
+    const handleNavigateToReminders = () => setActiveTab("reminders");
+    const handleNavigateToAlerts = () => setActiveTab("alerts");
+    const handleNavigateToReports = () => setActiveTab("reports");
+    
+    // Registrar listeners
+    window.addEventListener('navigate-to-transactions', handleNavigateToTransactions);
+    window.addEventListener('navigate-to-budgets', handleNavigateToBudgets);
+    window.addEventListener('navigate-to-categories', handleNavigateToCategories);
+    window.addEventListener('navigate-to-reminders', handleNavigateToReminders);
+    window.addEventListener('navigate-to-alerts', handleNavigateToAlerts);
+    window.addEventListener('navigate-to-reports', handleNavigateToReports);
+    
+    // Limpiar listeners al desmontar
+    return () => {
+      window.removeEventListener('navigate-to-transactions', handleNavigateToTransactions);
+      window.removeEventListener('navigate-to-budgets', handleNavigateToBudgets);
+      window.removeEventListener('navigate-to-categories', handleNavigateToCategories);
+      window.removeEventListener('navigate-to-reminders', handleNavigateToReminders);
+      window.removeEventListener('navigate-to-alerts', handleNavigateToAlerts);
+      window.removeEventListener('navigate-to-reports', handleNavigateToReports);
+    };
+  }, []);
 
   // Obtener categorías únicas para filtros
   const getUniqueCategories = () => {
@@ -626,18 +656,17 @@ function Wallet() {
    * Maneja los resultados del procesamiento de voz
    */
   const handleIntentDetected = (languageProcessingResult) => {
-    // Este método se puede usar para procesar intents directamente en el componente principal
-    console.log("Intent detectado:", languageProcessingResult.intent);
-    
-    // Navegar a la pestaña correspondiente según el intent
-    if (languageProcessingResult.intent.toLowerCase() === 'filtrartransacciones' ||
-        languageProcessingResult.intent.toLowerCase() === 'creartransaccion' ||
-        languageProcessingResult.intent.toLowerCase() === 'consultarsaldo') {
-      setActiveTab("transactions");
-    } else if (languageProcessingResult.intent.toLowerCase() === 'consultarpresupuesto') {
-      setActiveTab("budgets");
-    }
+    // No se procesan automáticamente las intenciones aquí
+    // Solo cuando el usuario presione el botón de "Ejecutar acción" en el componente VoiceRecorder
+    // La función onIntentDetected se llama para recibir el resultado, pero no ejecuta acciones automáticamente
   };
+
+  // Asegúrate de tener estados como estos en tu componente Wallet:
+  // const [activeTab, setActiveTab] = useState("transactions"); // o el tab inicial
+  // const [voiceMessage, setVoiceMessage] = useState(null);
+  
+  // Y renderizar el componente VoiceNotification:
+  // {voiceMessage && <VoiceNotification message={voiceMessage} onDismiss={() => setVoiceMessage(null)} />}
 
   // Obtener el conteo total de alertas no leídas (presupuestos + recordatorios)
   const getTotalUnreadAlerts = () => {
@@ -950,7 +979,10 @@ function Wallet() {
               markReminderAlertAsRead={reminderManager.markReminderAlertAsRead}
               dismissReminderAlert={reminderManager.dismissReminderAlert}
             />
-            <VoiceRecorder onIntentDetected={handleIntentDetected} />
+            <VoiceRecorder 
+              ref={voiceRecorderRef}
+              onIntentDetected={handleIntentDetected} 
+            />
           </div>
         </div>
 

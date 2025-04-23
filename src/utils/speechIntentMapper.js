@@ -47,6 +47,24 @@ export function parseDate(dateText) {
     return targetDate.toISOString().split('T')[0]; // Formato YYYY-MM-DD
   }
   
+  // Procesar fechas en formato DD/MM/YYYY o DD/MM/AAAA
+  const dateSlashRegex = /^(\d{1,2})[\/](\d{1,2})[\/](\d{4})$/;
+  const matchSlash = dateText.match(dateSlashRegex);
+  
+  if (matchSlash) {
+    const day = parseInt(matchSlash[1], 10);
+    const month = parseInt(matchSlash[2], 10) - 1; // Meses en JavaScript son 0-indexed
+    const year = parseInt(matchSlash[3], 10);
+    
+    // Crear la fecha y validarla
+    const date = new Date(year, month, day);
+    
+    // Verificar que la fecha sea válida
+    if (!isNaN(date.getTime())) {
+      return date.toISOString().split('T')[0]; // Formato YYYY-MM-DD
+    }
+  }
+  
   // Procesar fechas en formato "15 de abril de 2025"
   const dateRegex = /(\d{1,2})(?:\s+de\s+)?(enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|octubre|noviembre|diciembre)(?:\s+de\s+)?(\d{4})?/i;
   const match = lowerText.match(dateRegex);
@@ -77,7 +95,6 @@ export function parseDate(dateText) {
   }
   
   // Si no se pudo procesar, devolver fecha actual
-  console.warn('No se pudo procesar la fecha:', dateText);
   return new Date().toISOString().split('T')[0];
 }
 
@@ -167,7 +184,6 @@ export function parseCategory(categoryText) {
  */
 export function executeIntentAction(intent, entities, callbacks) {
   if (!intent || !entities || !callbacks) {
-    console.error('Se requieren intent, entities y callbacks para ejecutar acciones');
     return null;
   }
   
@@ -179,6 +195,9 @@ export function executeIntentAction(intent, entities, callbacks) {
 
   // Acciones según el tipo de intent
   switch (intent.toLowerCase()) {
+    case 'navegacionpestana':
+      return handleTabNavigation(entityMap, callbacks);
+      
     case 'creartransaccion':
       return handleCreateTransaction(entityMap, callbacks);
       
@@ -195,7 +214,6 @@ export function executeIntentAction(intent, entities, callbacks) {
       return handleCheckIncomes(entityMap, callbacks);
       
     default:
-      console.warn('Intent no reconocido:', intent);
       return {
         success: false,
         message: `No se reconoció la acción "${intent}"`
@@ -225,19 +243,6 @@ function handleCreateTransaction(entityMap, callbacks) {
   const categoria = parseCategory(categoriaTexto);
   const date = parseDate(fechaTexto);
   
-  console.log('Parseando transacción:', { 
-    tipo, 
-    montoTexto, 
-    categoriaTexto, 
-    fechaTexto, 
-    procesado: { 
-      transactionType, 
-      amount, 
-      categoria, 
-      date 
-    } 
-  });
-  
   // Si no hay monto o está en cero, no podemos crear la transacción
   if (!amount) {
     return {
@@ -265,7 +270,6 @@ function handleCreateTransaction(entityMap, callbacks) {
       data: transaction
     };
   } catch (error) {
-    console.error('Error al crear transacción:', error);
     return {
       success: false,
       message: 'Ocurrió un error al intentar crear la transacción'
@@ -323,7 +327,6 @@ function handleFilterTransactions(entityMap, callbacks) {
       data: filters
     };
   } catch (error) {
-    console.error('Error al aplicar filtros:', error);
     return {
       success: false, 
       message: 'Ocurrió un error al intentar aplicar los filtros'
@@ -347,7 +350,6 @@ function handleCheckBalance(entityMap, callbacks) {
       data: { balance }
     };
   } catch (error) {
-    console.error('Error al consultar saldo:', error);
     return { 
       success: false, 
       message: 'Ocurrió un error al consultar el saldo'
@@ -384,7 +386,6 @@ function handleCheckExpenses(entityMap, callbacks) {
       data: expenses
     };
   } catch (error) {
-    console.error('Error al consultar gastos:', error);
     return { 
       success: false, 
       message: 'Ocurrió un error al consultar los gastos'
@@ -421,10 +422,68 @@ function handleCheckIncomes(entityMap, callbacks) {
       data: incomes
     };
   } catch (error) {
-    console.error('Error al consultar ingresos:', error);
     return { 
       success: false, 
       message: 'Ocurrió un error al consultar los ingresos'
+    };
+  }
+}
+
+/**
+ * Maneja la navegación a una pestaña específica
+ */
+function handleTabNavigation(entityMap, callbacks) {
+  if (!callbacks.onNavigateToTab) {
+    return { 
+      success: false, 
+      message: 'No se proporcionó manejador para navegación entre pestañas' 
+    };
+  }
+  
+  const tabName = entityMap.pestana?.toLowerCase();
+  
+  if (!tabName) {
+    return {
+      success: false,
+      message: 'No se especificó la pestaña a la que deseas ir'
+    };
+  }
+  
+  try {
+    // Mapear los nombres de pestañas a identificadores del sistema
+    const tabMap = {
+      'transacciones': 'transactions',
+      'presupuestos': 'budgets',
+      'presupuesto': 'budgets',
+      'categorias': 'categories',
+      'categorías': 'categories',
+      'categoría': 'categories',
+      'categoria': 'categories',
+      'vencimientos': 'reminders',
+      'vencimiento': 'reminders',
+      'recordatorios': 'reminders',
+      'recordatorio': 'reminders',
+      'alertas': 'alerts',
+      'alerta': 'alerts',
+      'reportes': 'reports',
+      'reporte': 'reports',
+      'informe': 'reports',
+      'informes': 'reports'
+    };
+    
+    const tabId = tabMap[tabName] || tabName;
+    
+    callbacks.onNavigateToTab(tabId);
+    
+    return {
+      success: true,
+      message: `Navegando a la pestaña ${tabName}`,
+      data: { tabId }
+    };
+  } catch (error) {
+    return {
+      success: false,
+      message: 'Ocurrió un error al intentar navegar a la pestaña solicitada'
     };
   }
 }

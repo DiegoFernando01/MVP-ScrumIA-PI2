@@ -39,7 +39,6 @@ const TransactionItem = ({
     // Usar la función calculateBudgetUsage tal como se pasa desde TransactionList
     // TransactionList ya está pasando todas las transacciones necesarias
     usage = calculateBudgetUsage(category);
-    console.log("🔍 usage en TransactionItem:", category, usage); 
     budgetPercentage = usage?.percentage || 0;
   }
 
