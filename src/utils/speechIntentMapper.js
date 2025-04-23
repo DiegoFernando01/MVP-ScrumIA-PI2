@@ -47,6 +47,24 @@ export function parseDate(dateText) {
     return targetDate.toISOString().split('T')[0]; // Formato YYYY-MM-DD
   }
   
+  // Procesar fechas en formato DD/MM/YYYY o DD/MM/AAAA
+  const dateSlashRegex = /^(\d{1,2})[\/](\d{1,2})[\/](\d{4})$/;
+  const matchSlash = dateText.match(dateSlashRegex);
+  
+  if (matchSlash) {
+    const day = parseInt(matchSlash[1], 10);
+    const month = parseInt(matchSlash[2], 10) - 1; // Meses en JavaScript son 0-indexed
+    const year = parseInt(matchSlash[3], 10);
+    
+    // Crear la fecha y validarla
+    const date = new Date(year, month, day);
+    
+    // Verificar que la fecha sea válida
+    if (!isNaN(date.getTime())) {
+      return date.toISOString().split('T')[0]; // Formato YYYY-MM-DD
+    }
+  }
+  
   // Procesar fechas en formato "15 de abril de 2025"
   const dateRegex = /(\d{1,2})(?:\s+de\s+)?(enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|octubre|noviembre|diciembre)(?:\s+de\s+)?(\d{4})?/i;
   const match = lowerText.match(dateRegex);
