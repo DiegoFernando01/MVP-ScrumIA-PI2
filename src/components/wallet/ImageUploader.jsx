@@ -94,7 +94,7 @@ const ImageUploader = forwardRef(({ onImageProcessed }, ref) => {
       const formData = new FormData();
       formData.append("image", imageFile);
 
-      const response = await fetch("/api/processImage", {
+      const response = await fetch("/api/analyzeImage", {
         method: "POST",
         body: formData,
       });
