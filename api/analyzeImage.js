@@ -1,8 +1,6 @@
 import formidable from "formidable";
 import { AzureOpenAI } from "openai";
 import fs from "fs";
-import path from "path";
-import os from "os";
 
 import { AzureKeyCredential } from '@azure/core-auth';
 import pkg from '@azure-rest/ai-vision-image-analysis';
@@ -17,8 +15,9 @@ const formidableConfig = {
 };
 
 const endpoint = process.env.VISION_ENDPOINT;
-const key = process.env.VISION_KEY;  
+const key = process.env.VISION_KEY;
 const credential = new AzureKeyCredential(key);
+const client = createClient(endpoint, credential);
 
 // OpenAI configuration
 const openAIEndpoint = process.env.OPENAI_ENDPOINT;
@@ -26,10 +25,7 @@ const openAIApiKey = process.env.OPENAI_API_KEY;
 const openAIApiVersion = process.env.OPENAI_API_VERSION;
 const openAIDeployment = process.env.OPENAI_DEPLOYMENT;
 
-const client = createClient (endpoint, credential);
-
 const features = [
-  'Caption',
   'Read',
 ];
 
@@ -41,43 +37,47 @@ export default async function handler(req, res) {
   console.log("Procesando solicitud de análisis de imagen...");
 
   try {
-    const { imageBuffer, tempFilePath } = await new Promise((resolve, reject) => {
+    const { tempFilePath } = await new Promise((resolve, reject) => {
       const form = formidable(formidableConfig);
       form.parse(req, (err, fields, files) => {
         if (err) return reject(err);
         const imageFile = files.image?.[0];
         if (!imageFile) return reject(new Error("No se recibió archivo de imagen"));
-        try {
-          const data = fs.readFileSync(imageFile.filepath);
-          resolve({
-            imageBuffer: data,
-            tempFilePath: imageFile.filepath
-          });
-        } catch (e) {
-          reject(e);
-        }
+        resolve({ tempFilePath: imageFile.filepath });
       });
     });
 
     console.log("Archivo de imagen recibido y guardado temporalmente en:", tempFilePath);
 
-    const analysisResult = await analyzeImageWithAzure(tempFilePath).readResult;
+    const azureResponse = await analyzeImageWithAzure(tempFilePath);
 
-    console.log("Análisis de imagen completado:", analysisResult);
+    if (azureResponse.status != 200) {
+        throw new Error(`Azure Image Analysis failed with status: ${azureResponse.status}`);
+    }
+    
+    const analysisResult = azureResponse.body;
 
+    console.log("Análisis de imagen completado:", JSON.stringify(analysisResult, null, 2));
+
+    const extractedText = analysisResult?.readResult?.blocks?.map(block => block.lines.map(line => line.text).join(' ')).join('\n') || '';
+    //const extractedText = analysisResult.readResult;
     // Procesar el análisis con OpenAI
-    const text = analysisResult || "No se pudo extraer texto de la imagen";
+    console.log(extractedText)
+    const textToProcess = extractedText || "No se pudo extraer texto de la imagen";
 
-    //const openAIResponse = await proccessImageWithOpenAI(text);
-    //console.log("Respuesta de OpenAI procesada:", openAIResponse);
+    const openAIResponse = await proccessImageWithOpenAI(textToProcess);
+    console.log("Respuesta de OpenAI procesada:", openAIResponse);
 
     // Limpieza de archivos temporales
     try {
       fs.unlinkSync(tempFilePath);
-    } catch {}
+    } catch (e) {
+        console.error("Error deleting temp file", e);
+    }
 
-    res.status(200).json({ analysis: analysisResult });
+    res.status(200).json(openAIResponse);
   } catch (err) {
+    console.error("Error in handler:", err);
     return res.status(500).json({ error: err.message });
   }
 }
@@ -89,6 +89,7 @@ async function analyzeImageWithAzure(imagePath) {
 
   const imageBuffer = fs.readFileSync(imagePath);
 
+  console.log("Sending request to Azure Image Analysis");
   const result = await client.path('/imageanalysis:analyze').post({
     body: imageBuffer,
     queryParameters: {
@@ -97,52 +98,27 @@ async function analyzeImageWithAzure(imagePath) {
     contentType: 'application/octet-stream'
   });
 
-  return result.body;
+  console.log("Response from Azure Image Analysis status:", result.status);
+
+  return result;
 }
 
-async function proccessImageWithOpenAI(analysisResult) {
+async function proccessImageWithOpenAI(textToProcess) {
   try {
     if (!openAIApiKey || !openAIEndpoint || !openAIApiVersion || !openAIDeployment) {
-      console.error("API key o configuración de Azure OpenAI no encontrada");
-      return res.status(500).json({ error: "API key o configuración de Azure OpenAI no encontrada"});
+      throw new Error("API key o configuración de Azure OpenAI no encontrada");
     }
 
-    const client = new AzureOpenAI({ openAIApiKey, openAIEndpoint, openAIApiVersion, openAIDeployment });
+    const client = new AzureOpenAI({ apiKey: openAIApiKey, endpoint: openAIEndpoint, apiVersion: openAIApiVersion, deployment: openAIDeployment});
+    
+    const today = new Date().toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
 
-    let systemPrompt, userContent;
-
-    // Construir el prompt para Azure OpenAI
-    systemPrompt = `Eres el asistente de una aplicación de finanzas personales. Analiza el contenido del analisis de una imagen y responde únicamente con un JSON según la intención detectada.
-
-Hay dos tipos de intenciones principales:
-
-1. CREAR TRANSACCIÓN: Si el contenido de la imagen corresponde a un movimiento financiero, responde:
-{
-  "intent": "CrearTransaccion",
-  "TipoTransaccion": "gasto" o "ingreso",
-  "Monto": valor numérico,
-  "Categoria": una de [Alimentación, Transporte, Vivienda, Entretenimiento, Salud, Educación, Ropa, Servicios, Otros gastos, Salario, Ventas, Inversiones, Préstamo, Regalo, Otros ingresos],
-  "Fecha": formato DD/MM/AAAA,
-  "Descripción": texto descriptivo adicional (opcional)
-}
-Recuerda: Hoy es 30/06/2025.
-
-2. OTRAS CONSULTAS: Si el contenido no corresponde a una transacción, responde:
-{
-  "intent": "None",
-  "TipoTransaccion": "",
-  "Monto": 0,
-  "Categoria": "",
-  "Fecha": "",
-  "Descripción": ""
-}
-
-Devuelve solo el JSON, sin texto adicional.`;
+    const systemPrompt = `Eres el asistente de una aplicación de finanzas personales. Analiza el resultado del analisis de una imagen y responde únicamente con un JSON según la intención detectada.\n\nHay dos tipos de intenciones principales:\n\n1. CREAR TRANSACCIÓN: Si el contenido de la imagen corresponde a un movimiento financiero, responde:\n{\n  "intent": "CrearTransaccion",\n  "TipoTransaccion": "gasto" o "ingreso",\n  "Monto": valor numérico,\n  "Categoria": una de [Alimentación, Transporte, Vivienda, Entretenimiento, Salud, Educación, Ropa, Servicios, Otros gastos, Salario, Ventas, Inversiones, Préstamo, Regalo, Otros ingresos],\n  "Fecha": formato DD/MM/AAAA,\n  "Descripción": texto descriptivo adicional (opcional)\n}\nRecuerda: Hoy es ${today}.\n\n2. OTRAS CONSULTAS: Si el contenido no corresponde a una transacción, responde:\n{\n  "intent": "None",\n  "TipoTransaccion": "",\n  "Monto": 0,\n  "Categoria": "",\n  "Fecha": "",\n  "Descripción": ""\n}\n\nDevuelve solo el JSON, sin texto adicional.`;
 
     const result = await client.chat.completions.create({
       messages: [
         { role: "system", content: systemPrompt },
-        { role: "user", content: text }
+        { role: "user", content: textToProcess }
       ],
       max_tokens: 800,
       temperature: 0.7,
@@ -153,73 +129,46 @@ Devuelve solo el JSON, sin texto adicional.`;
 
     const responseContent = result.choices[0].message.content;
 
-    // Intentar parsear la respuesta como JSON
-    let parsedResponse;
     try {
-      parsedResponse = JSON.parse(responseContent);
+      const parsedResponse = JSON.parse(responseContent);
+      if (parsedResponse.intent === "CrearTransaccion") {
+          const entities = [
+            { category: "TipoTransaccion", text: parsedResponse.TipoTransaccion || "" },
+            { category: "Monto", text: parsedResponse.Monto?.toString() || "0" },
+            { category: "Categoria", text: parsedResponse.Categoria || "" },
+            { category: "Fecha", text: parsedResponse.Fecha || "" }
+          ];
+    
+          if (parsedResponse.Descripción && parsedResponse.Descripción.trim() !== "") {
+            entities.push({ category: "Descripcion", text: parsedResponse.Descripción });
+          }
+    
+          return {
+            intent: parsedResponse.intent,
+            entities
+          };
+      } else {
+          return {
+            intent: parsedResponse.intent || "None",
+            entities: []
+          };
+      }
     } catch (parseError) {
       console.error("Error al parsear la respuesta como JSON:", parseError);
       console.error("Contenido problemático:", responseContent);
-
-      return "Error al parsear la respuesta como JSON:" + parseError.message;
-      /*
-      return res.status(200).json({
-        intent: "None",
-        entities: []
-      });
-      */
+      throw new Error("Error al parsear la respuesta de OpenAI como JSON.");
     }
 
-    // Procesar según el tipo de intención
-    if (parsedResponse.intent === "CrearTransaccion") {
-      const entities = [
-        { category: "TipoTransaccion", text: parsedResponse.TipoTransaccion || "" },
-        { category: "Monto", text: parsedResponse.Monto?.toString() || "0" },
-        { category: "Categoria", text: parsedResponse.Categoria || "" },
-        { category: "Fecha", text: parsedResponse.Fecha || "" }
-      ];
-
-      if (parsedResponse.Descripción && parsedResponse.Descripción.trim() !== "") {
-        entities.push({ category: "Descripcion", text: parsedResponse.Descripción });
-      }
-
-      const formattedResponse = {
-        intent: parsedResponse.intent,
-        entities
-      };
-      return formattedResponse;
-      //return res.status(200).json(formattedResponse);
-    } else if (parsedResponse.intent === "NavegacionPestana") {
-      const formattedResponse = {
-        intent: parsedResponse.intent,
-        entities: [
-          { category: "pestana", text: parsedResponse.pestana || "" }
-        ]
-      };
-
-      return res.status(200).json(formattedResponse);
-    } else {
-      const formattedResponse = {
-        intent: parsedResponse.intent || "None",
-        entities: []
-      };
-
-      return res.status(200).json(formattedResponse);
-    }
   } catch (err) {
     console.error("Error en OpenAI:", err);
-
     if (err.message && err.message.includes("content management policy")) {
       console.log("La respuesta fue filtrada por la política de contenido de Azure OpenAI");
-      /*
-      return res.status(200).json({
+       return {
         intent: "None",
         entities: [],
         filteredByContentPolicy: true
-      });
-      */
+      };
     }
-    return "La respuesta fue filtrada por la política de contenido de Azure OpenAI"
-    //return res.status(500).json({ error: err.message });
+    throw err;
   }
 }
