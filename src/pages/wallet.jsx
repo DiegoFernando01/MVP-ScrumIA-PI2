@@ -22,6 +22,7 @@ import useTransactions from "../hooks/useTransactions";
 import Reportes from "../components/wallet/Reportes";
 import { getUserData } from "../services/userService";
 import { parseDate } from "../utils/speechIntentMapper";
+import ImageUploader from "../components/wallet/ImageUploader";
 
 // Importación de estilos modularizados
 import "../styles/components/wallet/Common.css";
@@ -983,6 +984,7 @@ function Wallet() {
               ref={voiceRecorderRef}
               onIntentDetected={handleIntentDetected} 
             />
+            <ImageUploader />
           </div>
         </div>
 

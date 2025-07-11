@@ -20,10 +20,10 @@ export default async function handler(req, res) {
 
   try {
     // Inicializar el cliente de Azure OpenAI usando las variables existentes
-    const endpoint = process.env.OPENAI_ENDPOINT || "https://diego-m9tayqx3-eastus2.openai.azure.com/";
+    const endpoint = process.env.OPENAI_ENDPOINT;
     const apiKey = process.env.OPENAI_API_KEY;
-    const apiVersion = process.env.OPENAI_API_VERSION || "2024-04-01-preview";
-    const deployment = process.env.OPENAI_DEPLOYMENT || "gpt-4o";
+    const apiVersion = process.env.OPENAI_API_VERSION;
+    const deployment = process.env.OPENAI_DEPLOYMENT;
 
     // Verificar que la clave API existe
     if (!apiKey) {
