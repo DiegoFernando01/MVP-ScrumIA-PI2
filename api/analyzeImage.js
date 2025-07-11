@@ -57,12 +57,12 @@ export default async function handler(req, res) {
     
     const analysisResult = azureResponse.body;
 
-    console.log("Análisis de imagen completado:", JSON.stringify(analysisResult, null, 2));
+    //console.log("Análisis de imagen completado:", JSON.stringify(analysisResult, null, 2));
 
     const extractedText = analysisResult?.readResult?.blocks?.map(block => block.lines.map(line => line.text).join(' ')).join('\n') || '';
     //const extractedText = analysisResult.readResult;
+    
     // Procesar el análisis con OpenAI
-    console.log(extractedText)
     const textToProcess = extractedText || "No se pudo extraer texto de la imagen";
 
     const openAIResponse = await proccessImageWithOpenAI(textToProcess);
